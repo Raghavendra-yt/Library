@@ -10,7 +10,7 @@ on:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -44,7 +44,16 @@ jobs:
       - name: Build
         run: |
           cd client
-          npm run build
+          npm run build > ../build.log 2>&1
+
+      - name: Commit and push error log on failure
+        if: failure()
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add build.log || true
+          git commit -m "chore: add build failure log [skip ci]" || true
+          git push origin main || true
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
