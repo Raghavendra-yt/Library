@@ -1,0 +1,16 @@
+{
+  "name": "library-management-system",
+  "version": "1.0.0",
+  "description": "Library Book Issue & Return System prototype for Sri Gowthami Educational Institutions",
+  "main": "server/server.js",
+  "scripts": {
+    "install-all": "npm install && npm install --prefix server && npm install --prefix client",
+    "server": "py server/server.py",
+    "client": "npm run dev --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "test": "node server/test.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
