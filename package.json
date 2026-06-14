@@ -8,7 +8,8 @@
     "server": "py server/server.py",
     "client": "npm run dev --prefix client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "test": "node server/test.js"
+    "test": "node server/test.js",
+    "deploy": "npm run deploy --prefix client"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
