@@ -38,7 +38,7 @@ import IssueReturnForm from './components/IssueReturnForm';
 import AIStudentCounselor from './components/AIStudentCounselor';
 import UserGuide from './components/UserGuide';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api');
 
 const fadeVariants = {
   hidden: { opacity: 0, y: 10 },
