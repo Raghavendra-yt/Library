@@ -20,7 +20,7 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.endsWith('.github.io') ? 'http://localhost:5000/api' : '/api');
+import { getBooks, addBook, updateBook, deleteBook } from '../lib/firestoreService';
 
 export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }) {
   const shouldReduceMotion = useReducedMotion();
@@ -86,19 +86,13 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
   const fetchBooks = async () => {
     try {
       setLoading(true);
-      const url = new URL(`${API_BASE}/books`);
-      if (search) url.searchParams.append('search', search);
-      if (category && category !== 'All') url.searchParams.append('category', category);
-      
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Could not fetch catalog records');
-      const data = await res.json();
+      const data = await getBooks({ search, category });
       setBooks(data);
       // Reset selected ids on refetch
       setSelectedBookIds([]);
     } catch (err) {
       console.error(err);
-      setMessage({ type: 'error', text: 'Failed to connect to backend server.' });
+      setMessage({ type: 'error', text: 'Failed to fetch books from Firestore.' });
     } finally {
       setLoading(false);
     }
@@ -122,24 +116,14 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
   const handleAddBook = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${API_BASE}/books`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-      const data = await res.json();
-      
-      if (res.ok) {
-        setMessage({ type: 'success', text: 'Book added to catalog successfully!' });
-        resetForm();
-        setShowAddModal(false);
-        fetchBooks();
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to add book.' });
-      }
+      await addBook(formData);
+      setMessage({ type: 'success', text: 'Book added to Firestore catalog successfully!' });
+      resetForm();
+      setShowAddModal(false);
+      fetchBooks();
     } catch (err) {
       console.error(err);
-      setMessage({ type: 'error', text: 'Server communication error.' });
+      setMessage({ type: 'error', text: err.message || 'Failed to add book.' });
     }
   };
 
@@ -148,24 +132,14 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
     e.preventDefault();
     if (!selectedBook) return;
     try {
-      const res = await fetch(`${API_BASE}/books/${selectedBook.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-      const data = await res.json();
-      
-      if (res.ok) {
-        setMessage({ type: 'success', text: 'Book modified successfully!' });
-        resetForm();
-        setShowEditModal(false);
-        fetchBooks();
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to modify book.' });
-      }
+      await updateBook(selectedBook.id, formData);
+      setMessage({ type: 'success', text: 'Book modified in Firestore successfully!' });
+      resetForm();
+      setShowEditModal(false);
+      fetchBooks();
     } catch (err) {
       console.error(err);
-      setMessage({ type: 'error', text: 'Server communication error.' });
+      setMessage({ type: 'error', text: err.message || 'Failed to modify book.' });
     }
   };
 
@@ -173,23 +147,14 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
   const handleDeleteBook = async () => {
     if (!selectedBook) return;
     try {
-      const res = await fetch(`${API_BASE}/books/${selectedBook.id}`, {
-        method: 'DELETE'
-      });
-      const data = await res.json();
-      
-      if (res.ok) {
-        setMessage({ type: 'success', text: 'Book deleted from catalog successfully.' });
-        setShowDeleteConfirm(false);
-        setSelectedBook(null);
-        fetchBooks();
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to delete book.' });
-        setShowDeleteConfirm(false);
-      }
+      await deleteBook(selectedBook.id);
+      setMessage({ type: 'success', text: 'Book deleted from Firestore catalog successfully.' });
+      setShowDeleteConfirm(false);
+      setSelectedBook(null);
+      fetchBooks();
     } catch (err) {
       console.error(err);
-      setMessage({ type: 'error', text: 'Server communication error.' });
+      setMessage({ type: 'error', text: err.message || 'Failed to delete book.' });
       setShowDeleteConfirm(false);
     }
   };
@@ -202,27 +167,26 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
 
     try {
       let successCount = 0;
-      let failMessage = '';
+      let failMessages = [];
       
       for (const id of selectedBookIds) {
-        const res = await fetch(`${API_BASE}/books/${id}`, { method: 'DELETE' });
-        if (res.ok) {
+        try {
+          await deleteBook(id);
           successCount++;
-        } else {
-          const data = await res.json();
-          failMessage = data.error || 'Some books could not be deleted.';
+        } catch (err) {
+          failMessages.push(err.message);
         }
       }
       
       if (successCount === selectedBookIds.length) {
-        setMessage({ type: 'success', text: `Successfully deleted ${successCount} books.` });
+        setMessage({ type: 'success', text: `Successfully deleted ${successCount} books from Firestore.` });
       } else {
-        setMessage({ type: 'error', text: `Deleted ${successCount} of ${selectedBookIds.length} books. Error: ${failMessage}` });
+        setMessage({ type: 'error', text: `Deleted ${successCount} of ${selectedBookIds.length} books. ${failMessages[0] || ''}` });
       }
       fetchBooks();
     } catch (err) {
       console.error(err);
-      setMessage({ type: 'error', text: 'Bulk delete encountered network error.' });
+      setMessage({ type: 'error', text: 'Bulk delete encountered an error.' });
     }
   };
 

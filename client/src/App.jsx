@@ -38,7 +38,7 @@ import IssueReturnForm from './components/IssueReturnForm';
 import AIStudentCounselor from './components/AIStudentCounselor';
 import UserGuide from './components/UserGuide';
 
-const API_BASE = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api');
+import { getDashboardStats, getStudents } from './lib/firestoreService';
 
 const fadeVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -62,14 +62,15 @@ export default function App() {
 
   useEffect(() => {
     // Fetch global stats and student lists on mount or tab change
-    fetch(`${API_BASE}/dashboard/stats`)
-      .then(res => res.ok ? res.json() : null)
-      .then(data => { if (data) setGlobalStats(data); });
+    getDashboardStats()
+      .then(data => { if (data) setGlobalStats(data); })
+      .catch(err => console.error('Stats load error:', err));
 
-    fetch(`${API_BASE}/students`)
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setStudents(data));
+    getStudents()
+      .then(data => setStudents(data))
+      .catch(err => console.error('Students load error:', err));
   }, [activeTab]);
+
 
   // Dark mode toggler
   useEffect(() => {

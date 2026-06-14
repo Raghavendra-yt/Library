@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { BookOpen, User, Calendar, CheckCircle2, AlertTriangle, ArrowRightLeft, RefreshCw, X } from 'lucide-react';
-
-const API_BASE = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.endsWith('.github.io') ? 'http://localhost:5000/api' : '/api');
+import { getStudents, getBooks, getIssuedBooks, issueBook, returnBook, formatDate } from '../lib/firestoreService';
 
 export default function IssueReturnForm({ defaultTab = 'issue' }) {
   const shouldReduceMotion = useReducedMotion();
@@ -38,26 +37,19 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
     try {
       setLoading(true);
       
-      // Fetch students
-      const stdRes = await fetch(`${API_BASE}/students`);
-      const stdData = await stdRes.json();
-      setStudents(stdData);
+      const [studentsData, booksData, issuedData] = await Promise.all([
+        getStudents(),
+        getBooks(),
+        getIssuedBooks({ status: 'active' })
+      ]);
 
-      // Fetch books
-      const bookRes = await fetch(`${API_BASE}/books`);
-      const bookData = await bookRes.json();
-      setBooks(bookData);
-
-      // Fetch active transactions for returns
-      const statsRes = await fetch(`${API_BASE}/dashboard/stats`);
-      const statsData = await statsRes.json();
-      
-      // Extract active transactions
-      const activeTrans = statsData.recentTransactions.filter(t => !t.actual_return_date);
-      setActiveTransactions(activeTrans);
+      setStudents(studentsData);
+      setBooks(booksData);
+      setActiveTransactions(issuedData.filter(t => !t.actual_return_date));
       
     } catch (err) {
       console.error(err);
+      setStatus({ type: 'error', text: 'Failed to load data from Firestore. Check your connection.' });
     } finally {
       setLoading(false);
     }
@@ -74,10 +66,10 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
       return;
     }
 
-    const tx = activeTransactions.find(t => t.id.toString() === selectedTransactionId);
+    const tx = activeTransactions.find(t => t.id === selectedTransactionId || t.transaction_id === selectedTransactionId);
     if (!tx) return;
 
-    // Calculate current simulated fine dynamically
+    // Calculate current fine dynamically
     const today = new Date();
     const expected = new Date(tx.expected_return_date);
     const diffTime = today.getTime() - expected.getTime();
@@ -100,28 +92,20 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
     }
 
     try {
-      setStatus({ type: 'processing', text: 'Registering transaction...' });
-      const res = await fetch(`${API_BASE}/transactions/issue`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          book_id: parseInt(issueForm.book_id),
-          user_id: parseInt(issueForm.user_id),
-          expected_return_days: parseInt(issueForm.duration)
-        })
+      setStatus({ type: 'processing', text: 'Registering transaction in Firestore...' });
+      
+      await issueBook({
+        userId: issueForm.user_id,
+        bookId: issueForm.book_id,
+        durationDays: parseInt(issueForm.duration)
       });
-      const data = await res.json();
 
-      if (res.ok) {
-        setStatus({ type: 'success', text: 'Book issued successfully! The ledger has been updated.' });
-        setIssueForm({ user_id: '', book_id: '', duration: '14' });
-        fetchData();
-      } else {
-        setStatus({ type: 'error', text: data.error || 'Failed to issue book.' });
-      }
+      setStatus({ type: 'success', text: 'Book issued successfully! Firestore has been updated.' });
+      setIssueForm({ user_id: '', book_id: '', duration: '14' });
+      fetchData();
     } catch (err) {
       console.error(err);
-      setStatus({ type: 'error', text: 'Server connection error.' });
+      setStatus({ type: 'error', text: err.message || 'Failed to issue book.' });
     }
   };
 
@@ -133,30 +117,27 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
     }
 
     try {
-      setStatus({ type: 'processing', text: 'Processing asset return...' });
-      const res = await fetch(`${API_BASE}/transactions/return`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          transaction_id: parseInt(selectedTransactionId)
-        })
-      });
-      const data = await res.json();
+      setStatus({ type: 'processing', text: 'Processing asset return in Firestore...' });
+      
+      // Find the Firestore document ID
+      const tx = activeTransactions.find(t => 
+        t.id === selectedTransactionId || 
+        t.transaction_id === selectedTransactionId
+      );
+      if (!tx) throw new Error('Transaction not found.');
 
-      if (res.ok) {
-        setStatus({ 
-          type: 'success', 
-          text: `Book returned successfully! ${data.fine_accrued > 0 ? `Overdue fee of ₹${data.fine_accrued} posted to ledger.` : 'No overdue fees.'}` 
-        });
-        setSelectedTransactionId('');
-        setReturnPreview(null);
-        fetchData();
-      } else {
-        setStatus({ type: 'error', text: data.error || 'Failed to process return.' });
-      }
+      const result = await returnBook(tx.id || tx.transaction_id);
+
+      setStatus({ 
+        type: 'success', 
+        text: `Book returned successfully! ${result.fineAccrued > 0 ? `Overdue fee of ₹${result.fineAccrued} posted to Firestore.` : 'No overdue fees.'}`
+      });
+      setSelectedTransactionId('');
+      setReturnPreview(null);
+      fetchData();
     } catch (err) {
       console.error(err);
-      setStatus({ type: 'error', text: 'Server connection error.' });
+      setStatus({ type: 'error', text: err.message || 'Failed to process return.' });
     }
   };
 
@@ -164,7 +145,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
     <div className="max-w-xl mx-auto space-y-6 text-left">
       <div>
         <h2 className="text-xl font-bold text-slate-800 dark:text-white m-0 font-heading">Circulation Manager</h2>
-        <p className="text-slate-400 text-xs mt-1">Issue and return library catalog items seamlessly.</p>
+        <p className="text-slate-400 text-xs mt-1">Issue and return library catalog items seamlessly. <span className="text-violet-500 font-semibold">● Firestore Live</span></p>
       </div>
 
       {/* Tabs */}
@@ -242,8 +223,8 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
                 >
                   <option value="">-- Choose Student --</option>
                   {students.map(s => (
-                    <option key={s.user_id} value={s.user_id}>
-                      {s.name} ({s.class_grade} - {s.admission_number})
+                    <option key={s.id} value={s.id}>
+                      {s.name} {s.class_grade ? `(${s.class_grade})` : ''}
                     </option>
                   ))}
                 </select>
@@ -264,11 +245,15 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
                   required
                 >
                   <option value="">-- Choose Book --</option>
-                  {books.map(b => (
-                    <option key={b.id} value={b.id} disabled={b.available_copies === 0}>
-                      {b.title} ({b.available_copies} available / {b.total_copies} total) {b.available_copies === 0 ? '- OUT OF STOCK' : ''}
-                    </option>
-                  ))}
+                  {books.map(b => {
+                    const avail = b.available_copies ?? b.available ?? 0;
+                    const total = b.total_copies ?? b.quantity ?? 1;
+                    return (
+                      <option key={b.id} value={b.id} disabled={avail === 0}>
+                        {b.title} ({avail} available / {total} total) {avail === 0 ? '- OUT OF STOCK' : ''}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             </div>
