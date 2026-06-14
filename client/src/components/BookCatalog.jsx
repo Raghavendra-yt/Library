@@ -20,7 +20,7 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api');
+const API_BASE = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.endsWith('.github.io') ? 'http://localhost:5000/api' : '/api');
 
 export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }) {
   const shouldReduceMotion = useReducedMotion();

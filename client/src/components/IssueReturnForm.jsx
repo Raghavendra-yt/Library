@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { BookOpen, User, Calendar, CheckCircle2, AlertTriangle, ArrowRightLeft, RefreshCw, X } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api');
+const API_BASE = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.endsWith('.github.io') ? 'http://localhost:5000/api' : '/api');
 
 export default function IssueReturnForm({ defaultTab = 'issue' }) {
   const shouldReduceMotion = useReducedMotion();
