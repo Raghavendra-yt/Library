@@ -75,7 +75,7 @@ export default function Dashboard() {
       setError(null);
     } catch (err) {
       console.error(err);
-      setError('Could not connect to Express server. Make sure the backend is running.');
+      setError('Could not connect to Flask server. Make sure the backend is running.');
     } finally {
       setLoading(false);
     }
