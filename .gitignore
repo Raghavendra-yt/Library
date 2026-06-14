@@ -10,3 +10,5 @@ dist/
 .gemini/
 .agents/
 node_modules
+.vite/
+client/.vite/
