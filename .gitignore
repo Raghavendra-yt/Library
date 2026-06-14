@@ -9,3 +9,4 @@ server/data/
 dist/
 .gemini/
 .agents/
+node_modules
