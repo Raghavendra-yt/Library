@@ -549,13 +549,13 @@ export default function Dashboard() {
         {/* Right Column (30%) - Critical Actions, Outbox */}
         <div className="col-span-12 lg:col-span-4 space-y-6">
 
-          {/* Critical Overdue Action List */}
+          {/* Overdue Action List */}
           <motion.div 
             variants={cardVariants}
             className="card-panel p-6 flex flex-col h-[400px]"
           >
             <div className="flex items-center gap-2 mb-4 text-left border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-slate-800 dark:text-white m-0 font-heading">Critical Overdue List</h3>
+              <h3 className="text-base font-bold text-slate-800 dark:text-white m-0 font-heading">Overdue List</h3>
               <span className="ml-auto badge badge-danger text-[8px]">Alerts Active</span>
             </div>
 
