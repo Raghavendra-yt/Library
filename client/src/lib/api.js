@@ -73,6 +73,10 @@ export async function addStudent(studentData) {
   return flaskPost('/students', studentData);
 }
 
+export async function deleteStudent(studentId) {
+  return flaskDelete(`/students/${studentId}`);
+}
+
 // ─────────────────────────────────────────────────────────────────
 // BOOKS
 // ─────────────────────────────────────────────────────────────────

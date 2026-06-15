@@ -30,7 +30,8 @@ import {
   UserPlus,
   Activity,
   CheckCircle,
-  AlertTriangle
+  AlertTriangle,
+  Trash2
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import BookCatalog from './components/BookCatalog';
@@ -39,7 +40,7 @@ import AIStudentCounselor from './components/AIStudentCounselor';
 import UserGuide from './components/UserGuide';
 import ProfileView from './components/ProfileView';
 
-import { getDashboardStats, getStudents, markReminderSent } from './lib/api';
+import { getDashboardStats, getStudents, markReminderSent, addStudent, deleteStudent } from './lib/api';
 
 const fadeVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -54,6 +55,40 @@ export default function App() {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isInboxOpen, setIsInboxOpen] = useState(false);
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [memberFormData, setMemberFormData] = useState({
+    name: '',
+    contact: '',
+    admission_number: '',
+    class_grade: 'Class 10',
+    parent_name: '',
+    parent_contact: '',
+    campus_id: '1'
+  });
+
+  const handleAddMemberSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await addStudent(memberFormData);
+      alert('Member added successfully!');
+      setShowAddMemberModal(false);
+      setMemberFormData({
+        name: '',
+        contact: '',
+        admission_number: '',
+        class_grade: 'Class 10',
+        parent_name: '',
+        parent_contact: '',
+        campus_id: '1'
+      });
+      getStudents()
+        .then(data => setStudents(data))
+        .catch(err => console.error(err));
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Failed to add member.');
+    }
+  };
   const [inboxMessages, setInboxMessages] = useState([
     {
       id: 1,
@@ -142,7 +177,16 @@ export default function App() {
           />
         );
       case 'members':
-        return <MembersView students={students} />;
+        return (
+          <MembersView 
+            students={students} 
+            onRefresh={() => {
+              getStudents()
+                .then(data => setStudents(data))
+                .catch(err => console.error('Students load error:', err));
+            }} 
+          />
+        );
       case 'issue-book':
         return <IssueReturnForm defaultTab="issue" />;
       case 'return-book':
@@ -327,11 +371,11 @@ export default function App() {
         <header className="sticky top-0 z-40 bg-white dark:bg-[#111a35] border-b border-[#E5E7EB] dark:border-slate-800 h-20 flex items-center justify-between px-6 lg:px-8 shadow-sm transition-colors duration-300">
           {/* Global Search bar */}
           <div className="relative w-64 md:w-96">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-450 w-4 h-4" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-455 w-4 h-4" />
             <input
               type="text"
               placeholder="Search books, members, categories..."
-              className="w-full pl-11 pr-4 h-[46px] rounded-xl border border-[#E5E7EB] dark:border-slate-700 bg-white dark:bg-[#0b132b] text-xs focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] transition-all"
+              className="w-full pl-12 pr-4 h-[46px] rounded-xl border border-[#E5E7EB] dark:border-slate-700 bg-white dark:bg-[#0b132b] text-xs focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] transition-all"
             />
           </div>
 
@@ -409,13 +453,24 @@ export default function App() {
             </div>
 
             {/* Action button */}
-            <button
-              onClick={handleGlobalAddBook}
-              className="flex items-center justify-center gap-2 px-6 h-11 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl font-semibold transition-all duration-300 cursor-pointer shadow-lg shadow-[#2563eb]/20 text-xs active:scale-95 hover:-translate-y-0.5"
-            >
-              <Plus className="w-4 h-4" />
-              + Add New Book
-            </button>
+            {activeTab === 'books' && (
+              <button
+                onClick={handleGlobalAddBook}
+                className="flex items-center justify-center gap-2 px-6 h-11 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl font-semibold transition-all duration-300 cursor-pointer shadow-lg shadow-[#2563eb]/20 text-xs active:scale-95 hover:-translate-y-0.5"
+              >
+                <Plus className="w-4 h-4" />
+                + Add New Book
+              </button>
+            )}
+            {activeTab === 'members' && (
+              <button
+                onClick={() => setShowAddMemberModal(true)}
+                className="flex items-center justify-center gap-2 px-6 h-11 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl font-semibold transition-all duration-300 cursor-pointer shadow-lg shadow-[#2563eb]/20 text-xs active:scale-95 hover:-translate-y-0.5"
+              >
+                <Plus className="w-4 h-4" />
+                + Add Member
+              </button>
+            )}
           </div>
 
           {/* Active View Container */}
@@ -646,6 +701,131 @@ export default function App() {
           </>
         )}
       </AnimatePresence>
+
+      {/* ADD MEMBER MODAL */}
+      <AnimatePresence>
+        {showAddMemberModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAddMemberModal(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 cursor-pointer"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.95 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              className="bg-white dark:bg-[#1e293b] w-full max-w-md rounded-2xl p-6 relative z-50 border border-slate-100 dark:border-slate-800 shadow-xl text-left"
+            >
+              <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 className="text-base font-bold text-slate-800 dark:text-white m-0 font-heading">Register New Member</h3>
+                <button onClick={() => setShowAddMemberModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer p-1">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleAddMemberSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-450 dark:text-slate-400 mb-1">Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={memberFormData.name}
+                      onChange={(e) => setMemberFormData({ ...memberFormData, name: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#2563eb]"
+                      placeholder="e.g. Ramesh Kumar"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-450 dark:text-slate-400 mb-1">Contact Phone</label>
+                    <input
+                      type="text"
+                      required
+                      value={memberFormData.contact}
+                      onChange={(e) => setMemberFormData({ ...memberFormData, contact: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#2563eb]"
+                      placeholder="e.g. 9988776655"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-455 dark:text-slate-400 mb-1">Admission Number</label>
+                    <input
+                      type="text"
+                      required
+                      value={memberFormData.admission_number}
+                      onChange={(e) => setMemberFormData({ ...memberFormData, admission_number: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs font-mono focus:outline-none focus:border-[#2563eb]"
+                      placeholder="e.g. SG-2024-004"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-455 dark:text-slate-400 mb-1">Class / Grade</label>
+                    <input
+                      type="text"
+                      required
+                      value={memberFormData.class_grade}
+                      onChange={(e) => setMemberFormData({ ...memberFormData, class_grade: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#2563eb]"
+                      placeholder="e.g. Class 10"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-455 dark:text-slate-400 mb-1">Parent/Guardian Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={memberFormData.parent_name}
+                      onChange={(e) => setMemberFormData({ ...memberFormData, parent_name: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#2563eb]"
+                      placeholder="e.g. Koteswara Rao"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-455 dark:text-slate-400 mb-1">Parent Phone</label>
+                    <input
+                      type="text"
+                      required
+                      value={memberFormData.parent_contact}
+                      onChange={(e) => setMemberFormData({ ...memberFormData, parent_contact: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#2563eb]"
+                      placeholder="e.g. 9000012345"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-450 dark:text-slate-400 mb-1">Campus Location</label>
+                  <select
+                    value={memberFormData.campus_id}
+                    onChange={(e) => setMemberFormData({ ...memberFormData, campus_id: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs cursor-pointer focus:outline-none focus:border-[#2563eb]"
+                  >
+                    <option value="1">Main Campus, Rajahmundry</option>
+                    <option value="2">City Campus, Kakinada</option>
+                  </select>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full h-11 py-2 mt-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl font-bold cursor-pointer transition shadow-lg shadow-[#2563eb]/20 text-xs flex items-center justify-center active:scale-95"
+                >
+                  Save Member Profile
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -655,7 +835,21 @@ export default function App() {
 // ==========================================
 
 // Members View Component
-function MembersView({ students }) {
+function MembersView({ students, onRefresh }) {
+  const handleDelete = async (student) => {
+    const confirmDelete = window.confirm(`Are you sure you want to delete member "${student.name}"?`);
+    if (!confirmDelete) return;
+
+    try {
+      await deleteStudent(student.student_id);
+      alert(`Member "${student.name}" successfully deleted!`);
+      onRefresh();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Failed to delete member.');
+    }
+  };
+
   return (
     <div className="card-panel p-6 text-left">
       <div className="flex items-center justify-between mb-6">
@@ -674,12 +868,13 @@ function MembersView({ students }) {
               <th className="px-6 py-3 font-semibold">Class / Grade</th>
               <th className="px-6 py-3 font-semibold">Contact Phone</th>
               <th className="px-6 py-3 font-semibold">Parent Name</th>
+              <th className="px-6 py-3 font-semibold text-center">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {students.length === 0 ? (
               <tr>
-                <td colSpan="5" className="px-6 py-8 text-center text-slate-400">
+                <td colSpan="6" className="px-6 py-8 text-center text-slate-400">
                   No library members registered.
                 </td>
               </tr>
@@ -696,6 +891,15 @@ function MembersView({ students }) {
                   <td className="px-6 py-4 font-medium text-slate-600 dark:text-slate-300">{std.class_grade}</td>
                   <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{std.contact}</td>
                   <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{std.parent_name || 'N/A'}</td>
+                  <td className="px-6 py-4 text-center">
+                    <button
+                      onClick={() => handleDelete(std)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+                      title="Delete Member"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
                 </tr>
               ))
             )}

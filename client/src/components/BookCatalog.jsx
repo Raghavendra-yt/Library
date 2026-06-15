@@ -317,14 +317,6 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
           <h2 className="text-xl font-bold text-slate-800 dark:text-white m-0 font-heading">Library Book Catalog</h2>
           <p className="text-slate-400 text-xs mt-1">Search, filter, edit, and organize Sri Gowthami library assets.</p>
         </div>
-        
-        <button
-          onClick={triggerAddOpen}
-          className="flex items-center justify-center gap-2 px-6 h-12 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-[14px] font-semibold transition-all duration-300 cursor-pointer shadow-lg shadow-[#2563eb]/20 text-xs self-start sm:self-center active:scale-95"
-        >
-          <Plus className="w-4 h-4" />
-          + Add New Book
-        </button>
       </div>
 
       {/* Filter and Search Bar Card */}
@@ -337,7 +329,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
               placeholder="Search by book title, author, or ISBN..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-11 pr-4 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] transition-all"
+              className="w-full pl-12 pr-4 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] transition-all"
               aria-label="Search Catalog"
             />
           </div>

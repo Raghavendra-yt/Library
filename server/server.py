@@ -116,7 +116,7 @@ def delete_book(book_id):
 @app.route('/api/students', methods=['GET'])
 def get_students():
     sql = """
-      SELECT u.id as user_id, u.name, u.contact, s.admission_number, s.class_grade, p.name as parent_name, p.contact as parent_contact
+      SELECT s.id as student_id, u.id as user_id, u.name, u.contact, s.admission_number, s.class_grade, p.name as parent_name, p.contact as parent_contact
       FROM students s
       JOIN users u ON s.user_id = u.id
       LEFT JOIN parents p ON s.parent_id = p.id
@@ -165,6 +165,27 @@ def add_student():
         'student_id': student_res[0]['id'],
         'user_id': user_id
     }), 201
+
+# 4a. DELETE /api/students/:id - Delete student member profile
+@app.route('/api/students/<int:student_id>', methods=['DELETE'])
+def delete_student(student_id):
+    student = db.query('SELECT user_id FROM students WHERE id = $1', [student_id])
+    if len(student) == 0:
+        return jsonify({'error': 'Student not found'}), 404
+        
+    user_id = student[0]['user_id']
+    
+    active_trans = db.query('SELECT id FROM transactions WHERE user_id = $1 AND actual_return_date IS NULL', [user_id])
+    if len(active_trans) > 0:
+        return jsonify({'error': 'Cannot delete member with active book checkouts'}), 400
+        
+    # Delete related records
+    db.query('DELETE FROM fine_ledger WHERE transaction_id IN (SELECT id FROM transactions WHERE user_id = $1)', [user_id])
+    db.query('DELETE FROM transactions WHERE user_id = $1', [user_id])
+    db.query('DELETE FROM students WHERE id = $1', [student_id])
+    db.query('DELETE FROM users WHERE id = $1', [user_id])
+    
+    return jsonify({'message': 'Member deleted successfully'}), 200
 
 # 5. POST /api/transactions/issue - Issue book
 @app.route('/api/transactions/issue', methods=['POST'])
