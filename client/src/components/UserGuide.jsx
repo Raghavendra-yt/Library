@@ -58,7 +58,7 @@ export default function UserGuide({ isOpen, onClose }) {
       iconColor: "text-blue-500 bg-blue-50 dark:bg-blue-500/10 border-blue-100 dark:border-blue-500/20",
       details: [
         "Catalog tab supports debounced filtering by title, author, or ISBN code.",
-        "Circulation tab handles issues and returns with dropdown selections.",
+        "Borrow & Returns tab handles issues and returns with dropdown selections.",
         "Dynamic previews auto-calculate overdue days and fees (₹10/day)."
       ]
     },
@@ -70,7 +70,7 @@ export default function UserGuide({ isOpen, onClose }) {
       details: [
         "1. Click 'Send Alert' in the Overdue List to log a WhatsApp reminder.",
         "2. Navigate to 'AI Counselor' and ask: 'Explain recursion in Telugu'.",
-        "3. Go to 'Circulation', select 'Return Book', select Sita Rama, and submit."
+        "3. Go to 'Borrow & Returns', select 'Return Book', select Sita Rama, and submit."
       ]
     }
   ];

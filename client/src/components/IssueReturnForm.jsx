@@ -145,7 +145,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
   return (
     <div className="max-w-xl mx-auto space-y-6 text-left">
       <div>
-        <h2 className="text-xl font-bold text-slate-800 dark:text-white m-0 font-heading">Circulation Manager</h2>
+        <h2 className="text-xl font-bold text-slate-800 dark:text-white m-0 font-heading">Borrow & Returns</h2>
         <p className="text-slate-400 text-xs mt-1 flex items-center gap-1.5">
           Issue and return library catalog items seamlessly.
           <span className="text-emerald-500 font-semibold flex items-center gap-1">

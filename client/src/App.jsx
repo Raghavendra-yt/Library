@@ -152,8 +152,7 @@ export default function App() {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'books', label: 'Books', icon: BookMarked },
     { id: 'members', label: 'Members', icon: Users },
-    { id: 'issue-book', label: 'Borrowing', icon: ArrowRightLeft },
-    { id: 'return-book', label: 'Returns', icon: ArrowRightLeft },
+    { id: 'borrow-returns', label: 'Borrow & Returns', icon: ArrowRightLeft },
     { id: 'reservations', label: 'Reservations', icon: CalendarCheck },
     { id: 'fines', label: 'Fines & Payments', icon: DollarSign },
     { id: 'counselor', label: 'Analytics', icon: Sparkles },
@@ -187,10 +186,8 @@ export default function App() {
             }} 
           />
         );
-      case 'issue-book':
+      case 'borrow-returns':
         return <IssueReturnForm defaultTab="issue" />;
-      case 'return-book':
-        return <IssueReturnForm defaultTab="return" />;
       case 'reservations':
         return <ReservationsView />;
       case 'fines':
