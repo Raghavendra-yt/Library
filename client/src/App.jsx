@@ -289,15 +289,17 @@ export default function App() {
         }`}
       >
         {/* Brand Header */}
-        <div className="h-20 flex items-center justify-between px-6 border-b border-[#E5E7EB] dark:border-[#102856]">
+        <div className="h-20 flex items-center justify-between px-5 border-b border-[#E5E7EB] dark:border-[#102856]">
           <div className="flex items-center gap-3 overflow-hidden">
-            <span className="text-2xl flex-shrink-0 text-blue-600 font-bold">|||</span>
-            {isSidebarOpen && (
-              <div className="text-left">
-                <span className="font-bold text-slate-900 dark:text-white tracking-tight text-sm block font-heading">Library Suite</span>
-                <span className="text-[10px] text-slate-500 dark:text-[#2563eb] font-medium block uppercase tracking-wider">Management System</span>
-              </div>
-            )}
+            <img 
+              src="/Library/logo.png" 
+              alt="Sri Gowthami Logo" 
+              className={`h-10 transition-all duration-300 ${
+                isSidebarOpen 
+                  ? 'w-auto object-contain' 
+                  : 'w-10 object-cover object-left rounded-lg'
+              }`} 
+            />
           </div>
         </div>
 
