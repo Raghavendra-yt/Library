@@ -1,30 +1,11 @@
 /**
- * Unified API Service
+ * Unified API Service (Flask Backend Enforced)
  * 
- * Automatically switches between:
- *   - Flask REST API (when VITE_USE_FLASK=true, for local development)
- *   - Firebase Firestore SDK (for production / GitHub Pages)
- * 
- * All components import from this file — never directly from Flask or Firestore.
+ * Communicates directly with the Python Flask REST API backend.
+ * Firebase/Firestore support has been completely removed.
  */
 
-// ─────────────────────────────────────────────────────────────────
-// Detect which backend to use
-// ─────────────────────────────────────────────────────────────────
-const USE_FLASK = import.meta.env.VITE_USE_FLASK === 'true';
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
-
-// ─────────────────────────────────────────────────────────────────
-// Lazy imports — only load Firestore when not using Flask
-// ─────────────────────────────────────────────────────────────────
-let firestoreService = null;
-
-async function getFirestoreService() {
-  if (!firestoreService) {
-    firestoreService = await import('./firestoreService.js');
-  }
-  return firestoreService;
-}
 
 // ─────────────────────────────────────────────────────────────────
 // Flask API helpers
@@ -74,162 +55,109 @@ async function flaskDelete(path) {
 // DASHBOARD STATS
 // ─────────────────────────────────────────────────────────────────
 export async function getDashboardStats() {
-  if (USE_FLASK) {
-    const data = await flaskGet('/dashboard/stats');
-    return data;
-  }
-  const fs = await getFirestoreService();
-  return fs.getDashboardStats();
+  return flaskGet('/dashboard/stats');
 }
 
 // ─────────────────────────────────────────────────────────────────
 // STUDENTS / USERS
 // ─────────────────────────────────────────────────────────────────
 export async function getStudents() {
-  if (USE_FLASK) {
-    const data = await flaskGet('/students');
-    return data;
-  }
-  const fs = await getFirestoreService();
-  return fs.getStudents();
+  return flaskGet('/students');
 }
 
 export async function addStudent(studentData) {
-  if (USE_FLASK) {
-    return flaskPost('/students', studentData);
-  }
-  const fs = await getFirestoreService();
-  return fs.addUser({ ...studentData, role: 'student' });
+  return flaskPost('/students', studentData);
 }
 
 // ─────────────────────────────────────────────────────────────────
 // BOOKS
 // ─────────────────────────────────────────────────────────────────
 export async function getBooks({ search = '', category = '' } = {}) {
-  if (USE_FLASK) {
-    const params = new URLSearchParams();
-    if (search) params.append('search', search);
-    if (category && category !== 'All') params.append('category', category);
-    const qs = params.toString() ? `?${params}` : '';
-    return flaskGet(`/books${qs}`);
-  }
-  const fs = await getFirestoreService();
-  return fs.getBooks({ search, category });
+  const params = new URLSearchParams();
+  if (search) params.append('search', search);
+  if (category && category !== 'All') params.append('category', category);
+  const qs = params.toString() ? `?${params}` : '';
+  return flaskGet(`/books${qs}`);
 }
 
 export async function addBook(bookData) {
-  if (USE_FLASK) {
-    return flaskPost('/books', bookData);
-  }
-  const fs = await getFirestoreService();
-  return fs.addBook(bookData);
+  return flaskPost('/books', bookData);
 }
 
 export async function updateBook(bookId, bookData) {
-  if (USE_FLASK) {
-    return flaskPut(`/books/${bookId}`, bookData);
-  }
-  const fs = await getFirestoreService();
-  return fs.updateBook(bookId, bookData);
+  return flaskPut(`/books/${bookId}`, bookData);
 }
 
 export async function deleteBook(bookId) {
-  if (USE_FLASK) {
-    return flaskDelete(`/books/${bookId}`);
-  }
-  const fs = await getFirestoreService();
-  return fs.deleteBook(bookId);
+  return flaskDelete(`/books/${bookId}`);
 }
 
 // ─────────────────────────────────────────────────────────────────
 // ISSUE & RETURN
 // ─────────────────────────────────────────────────────────────────
 export async function getIssuedBooks({ status = '' } = {}) {
-  if (USE_FLASK) {
-    // Flask returns issued books embedded in dashboard stats
-    const stats = await getDashboardStats();
-    if (status === 'active') {
-      return (stats.recentTransactions || []).filter(t => t.status === 'Active' || t.status === 'Overdue');
-    }
-    return stats.recentTransactions || [];
+  const stats = await getDashboardStats();
+  if (status === 'active') {
+    return (stats.recentTransactions || []).filter(t => t.status === 'Active' || t.status === 'Overdue');
   }
-  const fs = await getFirestoreService();
-  return fs.getIssuedBooks({ status });
+  return stats.recentTransactions || [];
 }
 
 export async function issueBook({ userId, bookId, durationDays = 14 }) {
-  if (USE_FLASK) {
-    return flaskPost('/transactions/issue', {
-      user_id: userId,
-      book_id: bookId,
-      expected_return_days: durationDays
-    });
-  }
-  const fs = await getFirestoreService();
-  return fs.issueBook({ userId, bookId, durationDays });
+  return flaskPost('/transactions/issue', {
+    user_id: userId,
+    book_id: bookId,
+    expected_return_days: durationDays
+  });
 }
 
 export async function returnBook(transactionId) {
-  if (USE_FLASK) {
-    const data = await flaskPost('/transactions/return', {
-      transaction_id: transactionId
-    });
-    return {
-      fineAccrued: data.fine_accrued || 0,
-      returnDate: data.return_date || new Date().toISOString().split('T')[0]
-    };
-  }
-  const fs = await getFirestoreService();
-  return fs.returnBook(transactionId);
+  const data = await flaskPost('/transactions/return', {
+    transaction_id: transactionId
+  });
+  return {
+    fineAccrued: data.fine_accrued || 0,
+    returnDate: data.return_date || new Date().toISOString().split('T')[0]
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────
 // NOTIFICATIONS / REMINDERS
 // ─────────────────────────────────────────────────────────────────
-export async function markReminderSent(transactionId, ledgerId) {
-  if (USE_FLASK) {
-    if (!ledgerId) return; // Flask requires ledger_id
-    return flaskPost('/notifications/remind', {
-      ledger_id: ledgerId
-    });
-  }
-  const fs = await getFirestoreService();
-  return fs.markReminderSent(transactionId);
+export async function markReminderSent(transactionId, ledgerId, studentName, studentContact, bookTitle, fineAmount) {
+  if (!ledgerId) return; // Flask requires ledger_id
+  return flaskPost('/notifications/remind', {
+    ledger_id: ledgerId,
+    student_name: studentName,
+    student_contact: studentContact,
+    book_title: bookTitle,
+    fine_amount: fineAmount
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────
 // AI DOUBT RESOLVER
 // ─────────────────────────────────────────────────────────────────
 export async function askDoubt(question) {
-  if (USE_FLASK) {
-    return flaskPost('/ai/doubt', { question });
-  }
-  // Handled locally in AIStudentCounselor when not using Flask
-  throw new Error('Use local AI when not in Flask mode');
+  return flaskPost('/ai/doubt', { question });
 }
 
 // ─────────────────────────────────────────────────────────────────
 // AI COUNSELING
 // ─────────────────────────────────────────────────────────────────
 export async function getAICounsel(studentId) {
-  if (USE_FLASK) {
-    return flaskPost('/ai/counsel', { student_id: studentId });
-  }
-  return null; // Handled locally in Dashboard
+  return flaskPost('/ai/counsel', { student_id: studentId });
 }
 
 // ─────────────────────────────────────────────────────────────────
 // Health check
 // ─────────────────────────────────────────────────────────────────
 export async function checkHealth() {
-  if (USE_FLASK) {
-    return flaskGet('/health');
-  }
-  return { status: 'OK', backend: 'Firestore' };
+  return flaskGet('/health');
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Re-export formatDate utility from Firestore service
+// Utilities
 // ─────────────────────────────────────────────────────────────────
 export function formatDate(value) {
   if (!value) return '';
@@ -238,4 +166,4 @@ export function formatDate(value) {
   return String(value).split('T')[0];
 }
 
-export const IS_FLASK_MODE = USE_FLASK;
+export const IS_FLASK_MODE = true;

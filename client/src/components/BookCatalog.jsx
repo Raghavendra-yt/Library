@@ -320,7 +320,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
         
         <button
           onClick={triggerAddOpen}
-          className="flex items-center justify-center gap-2 px-6 h-12 bg-[#6D5EF4] hover:bg-[#5A4BE8] text-white rounded-[14px] font-semibold transition-all duration-300 cursor-pointer shadow-lg shadow-[#6D5EF4]/20 text-xs self-start sm:self-center active:scale-95"
+          className="flex items-center justify-center gap-2 px-6 h-12 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-[14px] font-semibold transition-all duration-300 cursor-pointer shadow-lg shadow-[#2563eb]/20 text-xs self-start sm:self-center active:scale-95"
         >
           <Plus className="w-4 h-4" />
           + Add New Book
@@ -337,7 +337,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
               placeholder="Search by book title, author, or ISBN..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-11 pr-4 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs focus:outline-none focus:border-[#6D5EF4] focus:ring-1 focus:ring-[#6D5EF4] transition-all"
+              className="w-full pl-11 pr-4 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] transition-all"
               aria-label="Search Catalog"
             />
           </div>
@@ -346,7 +346,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-4 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs cursor-pointer focus:outline-none focus:border-[#6D5EF4]"
+              className="w-full px-4 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs cursor-pointer focus:outline-none focus:border-[#2563eb]"
               aria-label="Filter by Category"
             >
               <option value="">All Categories</option>
@@ -359,9 +359,9 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
 
         {/* Selected Items Actions Panel */}
         {selectedBookIds.length > 0 && (
-          <div className="flex items-center justify-between bg-violet-50 dark:bg-violet-950/20 border border-violet-100 dark:border-violet-900/30 p-3 rounded-xl text-xs font-semibold text-violet-750 dark:text-violet-300">
+          <div className="flex items-center justify-between bg-blue-50/70 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 p-3 rounded-xl text-xs font-semibold text-blue-700 dark:text-blue-300">
             <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-[#6D5EF4]" />
+              <Check className="w-4 h-4 text-[#2563eb]" />
               <span>{selectedBookIds.length} books selected</span>
             </div>
             <button
@@ -402,7 +402,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
       <div className="bg-white dark:bg-[#1e293b] border border-[#E5E7EB] dark:border-slate-800 rounded-[20px] shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex flex-col items-center justify-center min-h-[300px] gap-2">
-            <RefreshCw className="w-6 h-6 text-[#6D5EF4] animate-spin" />
+            <RefreshCw className="w-6 h-6 text-[#2563eb] animate-spin" />
             <p className="text-slate-400 text-xs font-medium">Updating catalog assets...</p>
           </div>
         ) : books.length === 0 ? (
@@ -420,7 +420,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
                       type="checkbox" 
                       checked={isAllVisibleSelected()} 
                       onChange={handleSelectAll}
-                      className="rounded border-slate-300 text-[#6D5EF4] focus:ring-[#6D5EF4] h-4 w-4 cursor-pointer"
+                      className="rounded border-slate-300 text-[#2563eb] focus:ring-[#2563eb] h-4 w-4 cursor-pointer"
                     />
                   </th>
                   <th className="px-6 py-4">Cover</th>
@@ -463,8 +463,8 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
                   return (
                     <tr 
                       key={book.id} 
-                      className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${
-                        isSelected ? 'bg-violet-50/20 dark:bg-violet-900/10' : ''
+                      className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors border-b border-slate-100 dark:border-slate-800 ${
+                        isSelected ? 'bg-blue-50/20 dark:bg-blue-950/10' : ''
                       }`}
                     >
                       <td className="px-6 py-4 text-center">
@@ -472,11 +472,11 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
                           type="checkbox" 
                           checked={isSelected} 
                           onChange={(e) => handleSelectRow(e, book.id)}
-                          className="rounded border-slate-300 text-[#6D5EF4] focus:ring-[#6D5EF4] h-4 w-4 cursor-pointer"
+                          className="rounded border-slate-300 text-[#2563eb] focus:ring-[#2563eb] h-4 w-4 cursor-pointer"
                         />
                       </td>
                       <td className="px-6 py-4">
-                        <div className="h-11 w-8 rounded-md bg-gradient-to-br from-[#6D5EF4] to-[#a78bfa] flex items-center justify-center text-[10px] font-bold text-white shadow-sm flex-shrink-0">
+                        <div className="h-11 w-8 rounded-md bg-gradient-to-br from-[#2563eb] to-[#38bdf8] flex items-center justify-center text-[10px] font-bold text-white shadow-sm flex-shrink-0">
                           {book.title.slice(0, 2).toUpperCase()}
                         </div>
                       </td>
@@ -510,7 +510,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
                           <button
                             onClick={() => triggerViewOpen(book)}
                             title="View Book"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-[#6D5EF4] hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-[#2563eb] hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -563,7 +563,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(currentPage - 1)}
-                className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-[#6D5EF4] disabled:opacity-40 transition cursor-pointer disabled:cursor-not-allowed"
+                className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-[#2563eb] disabled:opacity-40 transition cursor-pointer disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -574,8 +574,8 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
                   onClick={() => setCurrentPage(idx + 1)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${
                     currentPage === idx + 1
-                      ? 'bg-[#6D5EF4] text-white'
-                      : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-[#6D5EF4]'
+                      ? 'bg-[#2563eb] text-white'
+                      : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-[#2563eb]'
                   }`}
                 >
                   {idx + 1}
@@ -585,7 +585,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
               <button
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(currentPage + 1)}
-                className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-[#6D5EF4] disabled:opacity-40 transition cursor-pointer disabled:cursor-not-allowed"
+                className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-[#2563eb] disabled:opacity-40 transition cursor-pointer disabled:cursor-not-allowed"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -632,7 +632,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
                     required
                     value={formData.title}
                     onChange={handleInputChange}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#6D5EF4]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#2563eb]"
                     placeholder="Enter book title"
                   />
                 </div>
@@ -645,7 +645,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
                     required
                     value={formData.author}
                     onChange={handleInputChange}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#6D5EF4]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#2563eb]"
                     placeholder="Enter author name"
                   />
                 </div>
@@ -659,7 +659,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
                       required
                       value={formData.isbn}
                       onChange={handleInputChange}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs font-mono focus:outline-none focus:border-[#6D5EF4]"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs font-mono focus:outline-none focus:border-[#2563eb]"
                       placeholder="e.g., 978013235"
                     />
                   </div>
@@ -673,7 +673,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
                       max="100"
                       value={formData.total_copies}
                       onChange={handleInputChange}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#6D5EF4]"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#2563eb]"
                     />
                   </div>
                 </div>
@@ -684,7 +684,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs cursor-pointer focus:outline-none focus:border-[#6D5EF4]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs cursor-pointer focus:outline-none focus:border-[#2563eb]"
                   >
                     {categories.filter(c => c !== 'All').map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -694,7 +694,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
 
                 <button
                   type="submit"
-                  className="w-full py-2.5 mt-2 bg-[#6D5EF4] hover:bg-[#5A4BE8] text-white rounded-xl font-bold cursor-pointer transition shadow-lg shadow-[#6D5EF4]/20 text-xs"
+                  className="w-full py-2.5 mt-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl font-bold cursor-pointer transition shadow-lg shadow-[#2563eb]/20 text-xs"
                 >
                   Save Book to Library
                 </button>
@@ -736,7 +736,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
                     required
                     value={formData.title}
                     onChange={handleInputChange}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#6D5EF4]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#2563eb]"
                     placeholder="Enter book title"
                   />
                 </div>
@@ -749,7 +749,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
                     required
                     value={formData.author}
                     onChange={handleInputChange}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#6D5EF4]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#2563eb]"
                     placeholder="Enter author name"
                   />
                 </div>
@@ -763,7 +763,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
                       required
                       value={formData.isbn}
                       onChange={handleInputChange}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs font-mono focus:outline-none focus:border-[#6D5EF4]"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs font-mono focus:outline-none focus:border-[#2563eb]"
                       placeholder="e.g., 978013235"
                     />
                   </div>
@@ -777,7 +777,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
                       max="100"
                       value={formData.total_copies}
                       onChange={handleInputChange}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#6D5EF4]"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:border-[#2563eb]"
                     />
                   </div>
                 </div>
@@ -788,7 +788,7 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs cursor-pointer focus:outline-none focus:border-[#6D5EF4]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs cursor-pointer focus:outline-none focus:border-[#2563eb]"
                   >
                     {categories.filter(c => c !== 'All').map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -832,12 +832,12 @@ export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }
               </div>
 
               <div className="flex gap-4 items-start mb-6">
-                <div className="h-20 w-14 rounded-lg bg-gradient-to-br from-[#6D5EF4] to-[#a78bfa] flex items-center justify-center text-xs font-bold text-white shadow-md flex-shrink-0">
+                <div className="h-20 w-14 rounded-lg bg-gradient-to-br from-[#2563eb] to-[#a78bfa] flex items-center justify-center text-xs font-bold text-white shadow-md flex-shrink-0">
                   {selectedBook.title.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="text-left">
                   <h4 className="text-base font-bold text-slate-900 dark:text-white leading-tight m-0">{selectedBook.title}</h4>
-                  <p className="text-xs text-[#6D5EF4] font-semibold mt-1">{selectedBook.author}</p>
+                  <p className="text-xs text-[#2563eb] font-semibold mt-1">{selectedBook.author}</p>
                   <span className={`inline-block mt-2 px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getBookStatus(selectedBook).style}`}>
                     {getBookStatus(selectedBook).label}
                   </span>

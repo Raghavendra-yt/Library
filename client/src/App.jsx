@@ -37,8 +37,9 @@ import BookCatalog from './components/BookCatalog';
 import IssueReturnForm from './components/IssueReturnForm';
 import AIStudentCounselor from './components/AIStudentCounselor';
 import UserGuide from './components/UserGuide';
+import ProfileView from './components/ProfileView';
 
-import { getDashboardStats, getStudents, markReminderSent, IS_FLASK_MODE } from './lib/api';
+import { getDashboardStats, getStudents, markReminderSent } from './lib/api';
 
 const fadeVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -52,6 +53,33 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isInboxOpen, setIsInboxOpen] = useState(false);
+  const [inboxMessages, setInboxMessages] = useState([
+    {
+      id: 1,
+      sender: 'Sita Rama',
+      subject: 'Doubt about Recursion',
+      preview: 'I am unable to understand the base case in recursion...',
+      time: '15m ago',
+      read: false,
+    },
+    {
+      id: 2,
+      sender: 'Gowthami Admin',
+      subject: 'Weekly Catalog Audit',
+      preview: 'Please audit the Computer Science inventory this Friday.',
+      time: '2h ago',
+      read: false,
+    },
+    {
+      id: 3,
+      sender: 'Sri Gowthami System',
+      subject: 'Database Backup Complete',
+      preview: 'Automated backup successfully uploaded to secure cloud storage.',
+      time: '1d ago',
+      read: true,
+    }
+  ]);
   
   // State to trigger the "Add Book" modal inside BookCatalog
   const [addBookTrigger, setAddBookTrigger] = useState(0);
@@ -96,7 +124,8 @@ export default function App() {
     { id: 'counselor', label: 'Analytics', icon: Sparkles },
     { id: 'reports', label: 'Reports', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'users', label: 'Users', icon: UserSquare2 }
+    { id: 'users', label: 'Users', icon: UserSquare2 },
+    { id: 'profile', label: 'Profile', icon: User }
   ];
 
   // Active Tab view rendering
@@ -130,6 +159,8 @@ export default function App() {
         return <SettingsView isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />;
       case 'users':
         return <UsersView students={students} />;
+      case 'profile':
+        return <ProfileView />;
       default:
         return <Dashboard />;
     }
@@ -178,8 +209,8 @@ export default function App() {
       status: 'Approved',
       badgeClass: 'badge-info',
       icon: CheckCircle,
-      iconBg: 'bg-violet-50 dark:bg-violet-500/10',
-      iconColor: 'text-[#6D5EF4]'
+      iconBg: 'bg-blue-50 dark:bg-blue-550/10',
+      iconColor: 'text-[#2563eb]'
     },
     {
       title: 'System updates',
@@ -212,25 +243,25 @@ export default function App() {
       
       {/* 1. LEFT SIDEBAR NAVIGATION */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 bg-[#071A3D] border-r border-[#102856] transition-all duration-300 flex flex-col ${
+        className={`fixed inset-y-0 left-0 z-50 bg-white dark:bg-[#071A3D] border-r border-[#E5E7EB] dark:border-[#102856] transition-all duration-300 flex flex-col ${
           isSidebarOpen ? 'w-[260px]' : 'w-[80px]'
         }`}
       >
         {/* Brand Header */}
-        <div className="h-20 flex items-center justify-between px-6 border-b border-[#102856]">
+        <div className="h-20 flex items-center justify-between px-6 border-b border-[#E5E7EB] dark:border-[#102856]">
           <div className="flex items-center gap-3 overflow-hidden">
-            <span className="text-2xl flex-shrink-0">📚</span>
+            <span className="text-2xl flex-shrink-0 text-blue-600 font-bold">|||</span>
             {isSidebarOpen && (
               <div className="text-left">
-                <span className="font-bold text-white tracking-tight text-sm block font-heading">Sri Gowthami</span>
-                <span className="text-[10px] text-[#6D5EF4] font-bold block uppercase tracking-wider">Library Suite</span>
+                <span className="font-bold text-slate-900 dark:text-white tracking-tight text-sm block font-heading">Library Suite</span>
+                <span className="text-[10px] text-slate-500 dark:text-[#2563eb] font-medium block uppercase tracking-wider">Management System</span>
               </div>
             )}
           </div>
         </div>
 
         {/* Sidebar Links */}
-        <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+        <nav className="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto">
           {sidebarLinks.map((link) => {
             const Icon = link.icon;
             const isActive = activeTab === link.id || (link.id === 'books' && activeTab === 'categories');
@@ -238,51 +269,48 @@ export default function App() {
               <button
                 key={link.id}
                 onClick={() => setActiveTab(link.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold cursor-pointer transition-all duration-200 text-left relative ${
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition-all duration-200 text-left relative ${
                   isActive 
-                    ? 'bg-[#6D5EF4] text-white shadow-sm shadow-[#6D5EF4]/20' 
-                    : 'text-slate-300 hover:text-white hover:bg-[#102856]'
+                    ? 'bg-blue-50/70 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 font-semibold' 
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#102856]'
                 }`}
                 aria-label={link.label}
               >
-                <Icon className="w-4.5 h-4.5 flex-shrink-0" />
+                {isActive && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-blue-600 dark:bg-blue-400 rounded-r-full" />
+                )}
+                <Icon className={`w-4.5 h-4.5 flex-shrink-0 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'}`} />
                 {isSidebarOpen && <span>{link.label}</span>}
-                
-                {isActive && !shouldReduceMotion && (
-                  <motion.div 
-                    layoutId="sidebarActiveGlow"
-                    className="absolute inset-0 bg-[#6D5EF4]/5 border-l-3 border-[#6D5EF4] rounded-r-xl -z-10"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  />
-                )}
-                {isActive && shouldReduceMotion && (
-                  <div className="absolute inset-0 bg-[#6D5EF4]/5 border-l-3 border-[#6D5EF4] rounded-r-xl -z-10" />
-                )}
               </button>
             );
           })}
         </nav>
 
         {/* bottom Librarian Profile Card */}
-        <div className="p-4 border-t border-[#102856] mt-auto">
-          <div className="flex items-center gap-3 p-2 rounded-xl bg-[#102856]/40 text-white">
-            <div className="h-9 w-9 rounded-full bg-[#6D5EF4] text-white flex items-center justify-center font-bold text-sm">
-              LG
+        <div className="p-4 border-t border-[#E5E7EB] dark:border-[#102856] mt-auto">
+          <button 
+            onClick={() => setActiveTab('profile')}
+            className={`w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-[#102856]/40 text-slate-800 dark:text-white transition-colors cursor-pointer text-left ${
+              activeTab === 'profile' ? 'bg-blue-50/70 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 font-semibold' : ''
+            }`}
+          >
+            <div className="h-9 w-9 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30 flex items-center justify-center font-bold text-xs flex-shrink-0">
+               LG
             </div>
             {isSidebarOpen && (
               <div className="text-left min-w-0 flex-1">
                 <p className="text-xs font-bold truncate">Librarian Gowthami</p>
-                <p className="text-[10px] text-slate-400 font-semibold block leading-none mt-0.5">Admin</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block leading-none mt-0.5">ADMIN</p>
               </div>
             )}
-          </div>
+          </button>
         </div>
 
         {/* Sidebar Collapse Toggle Button */}
-        <div className="p-4 border-t border-[#102856]">
+        <div className="p-4 border-t border-[#E5E7EB] dark:border-[#102856]">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="w-full flex items-center justify-center p-2 rounded-xl bg-[#102856]/30 hover:bg-[#102856]/60 text-slate-300 hover:text-white cursor-pointer transition-colors"
+            className="w-full flex items-center justify-center p-2 rounded-xl bg-slate-50 dark:bg-[#102856]/30 hover:bg-slate-100 dark:hover:bg-[#102856]/60 text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white cursor-pointer transition-colors"
             aria-label="Collapse Menu"
           >
             {isSidebarOpen ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
@@ -291,7 +319,7 @@ export default function App() {
       </aside>
 
       {/* Main Container Wrapper */}
-      <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${
+      <div className={`flex-1 min-w-0 flex flex-col min-h-screen transition-all duration-300 ${
         isSidebarOpen ? 'pl-[260px]' : 'pl-[80px]'
       }`}>
         
@@ -303,7 +331,7 @@ export default function App() {
             <input
               type="text"
               placeholder="Search books, members, categories..."
-              className="w-full pl-11 pr-4 h-[46px] rounded-xl border border-[#E5E7EB] dark:border-slate-700 bg-white dark:bg-[#0b132b] text-xs focus:outline-none focus:border-[#6D5EF4] focus:ring-1 focus:ring-[#6D5EF4] transition-all"
+              className="w-full pl-11 pr-4 h-[46px] rounded-xl border border-[#E5E7EB] dark:border-slate-700 bg-white dark:bg-[#0b132b] text-xs focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] transition-all"
             />
           </div>
 
@@ -328,15 +356,21 @@ export default function App() {
             </button>
 
             {/* Mail Icon */}
-            <button className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors relative">
+            <button 
+              onClick={() => setIsInboxOpen(true)}
+              className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors relative"
+              title="Open Inbox"
+            >
               <Mail className="w-5 h-5" />
-              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-blue-500" />
+              {inboxMessages.some(m => !m.read) && (
+                <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-blue-500 border-2 border-white dark:border-[#111a35] animate-pulse" />
+              )}
             </button>
 
             {/* Notifications */}
             <button 
               onClick={() => setIsNotificationsOpen(true)}
-              className="p-2 text-slate-400 hover:text-[#6D5EF4] rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors relative"
+              className="p-2 text-slate-400 hover:text-[#2563eb] rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors relative"
               title="Open Notifications"
             >
               <Bell className="w-5 h-5" />
@@ -349,37 +383,35 @@ export default function App() {
             <span className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700" />
 
             {/* User Profile */}
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-[#6D5EF4]/10 text-[#6D5EF4] dark:text-[#a78bfa] border border-[#6D5EF4]/20 flex items-center justify-center font-bold text-sm">
+            <button 
+              onClick={() => setActiveTab('profile')}
+              className="flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 p-1.5 rounded-xl transition-all cursor-pointer text-left"
+            >
+              <div className="h-9 w-9 rounded-full bg-[#2563eb]/10 text-[#2563eb] dark:text-[#a78bfa] border border-[#2563eb]/20 flex items-center justify-center font-bold text-sm">
                 LG
               </div>
               <div className="text-left hidden md:block">
                 <p className="text-xs font-bold text-slate-800 dark:text-white leading-tight">Librarian Gowthami</p>
                 <p className="text-[10px] text-slate-400 uppercase font-semibold block leading-none mt-0.5">Admin</p>
               </div>
-            </div>
+            </button>
           </div>
         </header>
 
         {/* 3. MAIN DASHBOARD CONTENT */}
-        <main className="flex-1 px-6 lg:px-8 py-8 space-y-6">
+        <main className="flex-1 px-6 lg:px-8 py-8 space-y-6 min-w-0">
           {/* Dashboard Header Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5E7EB] dark:border-slate-800 pb-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white m-0 font-heading">
-                Library Management System
+              <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white m-0 font-heading">
+                {sidebarLinks.find(l => l.id === activeTab)?.label || 'Dashboard'}
               </h1>
-              <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1">
-                <span>Home</span>
-                <span>/</span>
-                <span className="text-[#6D5EF4] font-semibold">Library</span>
-              </div>
             </div>
 
             {/* Action button */}
             <button
               onClick={handleGlobalAddBook}
-              className="flex items-center justify-center gap-2 px-6 h-11 bg-[#6D5EF4] hover:bg-[#5A4BE8] text-white rounded-xl font-semibold transition-all duration-300 cursor-pointer shadow-lg shadow-[#6D5EF4]/20 text-xs active:scale-95 hover:-translate-y-0.5"
+              className="flex items-center justify-center gap-2 px-6 h-11 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl font-semibold transition-all duration-300 cursor-pointer shadow-lg shadow-[#2563eb]/20 text-xs active:scale-95 hover:-translate-y-0.5"
             >
               <Plus className="w-4 h-4" />
               + Add New Book
@@ -413,6 +445,115 @@ export default function App() {
         )}
       </AnimatePresence>
 
+       {/* Right Side Overlay Drawer for Inbox */}
+      <AnimatePresence>
+        {isInboxOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsInboxOpen(false)}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 cursor-pointer"
+            />
+
+            {/* Right Sliding Panel */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 right-0 w-[360px] max-w-[calc(100vw-40px)] bg-white dark:bg-[#111a35] shadow-2xl z-50 border-l border-[#E5E7EB] dark:border-slate-800 flex flex-col"
+            >
+              {/* Header */}
+              <div className="h-20 px-6 border-b border-[#E5E7EB] dark:border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-[#2563eb]" />
+                  <h3 className="text-base font-bold text-slate-800 dark:text-white m-0 font-heading">
+                    Inbox Messages
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsInboxOpen(false)}
+                  className="p-2 text-slate-400 hover:text-slate-850 dark:hover:text-white rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                  aria-label="Close inbox"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Messages List */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 text-left">
+                {inboxMessages.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 gap-2">
+                    <Mail className="w-8 h-8 text-slate-350 dark:text-slate-655" />
+                    <p className="text-sm font-semibold">Inbox is empty</p>
+                    <p className="text-xs text-slate-400">All student queries and messages have been handled.</p>
+                  </div>
+                ) : (
+                  inboxMessages.map((msg) => (
+                    <div 
+                      key={msg.id} 
+                      className={`flex flex-col gap-1 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border transition-all hover:shadow-sm ${
+                        msg.read 
+                          ? 'border-slate-100 dark:border-slate-800/80' 
+                          : 'border-blue-100 dark:border-blue-900/40 hover:border-blue-200 bg-blue-50/10 dark:bg-blue-950/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-800 dark:text-white truncate">
+                          {msg.sender}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium">{msg.time}</span>
+                      </div>
+                      <p className="text-[11px] font-semibold text-[#2563eb] truncate">{msg.subject}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5 leading-relaxed">
+                        {msg.preview}
+                      </p>
+                      <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-slate-100/50 dark:border-slate-800/50">
+                        {!msg.read && (
+                          <button
+                            onClick={() => {
+                              setInboxMessages(prev => prev.map(m => m.id === msg.id ? { ...m, read: true } : m));
+                            }}
+                            className="text-[10px] font-bold text-[#2563eb] hover:underline cursor-pointer"
+                          >
+                            Mark Read
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            setInboxMessages(prev => prev.filter(m => m.id !== msg.id));
+                          }}
+                          className="text-[10px] font-bold text-rose-500 hover:underline cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Dismiss all */}
+              {inboxMessages.length > 0 && (
+                <div className="p-4 border-t border-[#E5E7EB] dark:border-slate-800 bg-slate-50/50 dark:bg-[#111a35]/50 flex items-center justify-center">
+                  <button
+                    onClick={() => {
+                      setInboxMessages(prev => prev.map(m => ({ ...m, read: true })));
+                    }}
+                    className="text-xs font-bold text-[#2563eb] hover:text-[#1d4ed8] hover:underline cursor-pointer"
+                  >
+                    Mark all as read
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Right Side Overlay Drawer for Notifications */}
       <AnimatePresence>
         {isNotificationsOpen && (
@@ -437,7 +578,7 @@ export default function App() {
               {/* Header */}
               <div className="h-20 px-6 border-b border-[#E5E7EB] dark:border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-[#6D5EF4]" />
+                  <Bell className="w-5 h-5 text-[#2563eb]" />
                   <h3 className="text-base font-bold text-slate-800 dark:text-white m-0 font-heading">
                     Notification Center
                   </h3>
@@ -465,7 +606,7 @@ export default function App() {
                     return (
                       <div 
                         key={idx} 
-                        className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800/80 transition-all hover:border-violet-200 dark:hover:border-violet-900 hover:shadow-sm"
+                        className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800/80 transition-all hover:border-blue-200 dark:hover:border-blue-900/50 hover:shadow-sm"
                       >
                         <div className={`p-2.5 rounded-xl ${notif.iconBg} flex items-center justify-center flex-shrink-0`}>
                           <Icon className={`w-4 h-4 ${notif.iconColor}`} />
@@ -496,7 +637,7 @@ export default function App() {
               <div className="p-4 border-t border-[#E5E7EB] dark:border-slate-800 bg-slate-50/50 dark:bg-[#111a35]/50 flex items-center justify-center">
                 <button
                   onClick={() => setIsNotificationsOpen(false)}
-                  className="text-xs font-bold text-[#6D5EF4] hover:text-[#5A4BE8] hover:underline cursor-pointer"
+                  className="text-xs font-bold text-[#2563eb] hover:text-[#1d4ed8] hover:underline cursor-pointer"
                 >
                   Dismiss all notifications
                 </button>
@@ -622,31 +763,16 @@ function FinesView({ overdueList, onUpdate }) {
   const handleAlert = async (item) => {
     try {
       setLoadingId(item.transaction_id);
-
-      if (IS_FLASK_MODE) {
-        // Flask mode: call Flask notification endpoint
-        const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/notifications/remind`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ledger_id: item.ledger_id,
-            student_name: item.student_name,
-            student_contact: item.student_contact,
-            book_title: item.title || item.book_title,
-            fine_amount: item.fine_amount
-          })
-        });
-        if (res.ok) {
-          alert(`Reminder logged for ${item.student_name}!`);
-          onUpdate();
-        }
-      } else {
-        // Firestore mode: mark reminder sent directly
-        const { markReminderSent } = await import('./lib/api');
-        await markReminderSent(item.transaction_id, item.ledger_id);
-        alert(`Reminder logged for ${item.student_name} in Firestore!`);
-        onUpdate();
-      }
+      await markReminderSent(
+        item.transaction_id,
+        item.ledger_id,
+        item.student_name,
+        item.student_contact,
+        item.title || item.book_title,
+        item.fine_amount
+      );
+      alert(`Reminder logged for ${item.student_name}!`);
+      onUpdate();
     } catch (err) {
       console.error(err);
       alert('Failed to send reminder. Check console for details.');
@@ -694,7 +820,7 @@ function FinesView({ overdueList, onUpdate }) {
                       className={`px-3.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-200 ${
                         item.automated_reminder_sent === 1 
                           ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30' 
-                          : 'bg-[#8b5cf6] hover:bg-[#7c3aed] text-white shadow-md'
+                          : 'bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-md'
                       }`}
                     >
                       {item.automated_reminder_sent === 1 ? 'Sent Reminded' : loadingId === item.transaction_id ? 'Sending...' : 'Send WhatsApp Alert'}
@@ -728,7 +854,7 @@ function ReportsView({ categoryStats, metrics }) {
           </div>
           <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
             <div 
-              className="bg-[#8b5cf6] h-full" 
+              className="bg-[#2563eb] h-full" 
               style={{ width: `${metrics ? Math.round((metrics.activeIssues / metrics.totalBooks) * 100) : 0}%` }}
             />
           </div>
@@ -762,7 +888,7 @@ function ReportsView({ categoryStats, metrics }) {
                 </div>
                 <div className="w-full bg-slate-100 dark:bg-slate-850 h-2 rounded-full overflow-hidden">
                   <div 
-                    className="bg-[#8b5cf6] h-full"
+                    className="bg-[#2563eb] h-full"
                     style={{ width: `${Math.min(100, (item.total_copies / 20) * 100)}%` }}
                   />
                 </div>
@@ -791,7 +917,7 @@ function SettingsView({ isDarkMode, setIsDarkMode }) {
           </div>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className="px-4 py-2 bg-[#6D5EF4] hover:bg-[#5A4BE8] text-white rounded-xl text-xs font-bold cursor-pointer transition"
+            className="px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl text-xs font-bold cursor-pointer transition"
           >
             {isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           </button>
@@ -801,15 +927,12 @@ function SettingsView({ isDarkMode, setIsDarkMode }) {
         <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3">
           <h4 className="text-sm font-bold text-slate-800 dark:text-white m-0">Backend Database Driver</h4>
           <p className="text-xs text-slate-400">
-            {IS_FLASK_MODE
-              ? 'Running in local Flask mode. API requests routed via Vite proxy to localhost:5000.'
-              : 'Running in Firebase Firestore mode. Data stored directly in cloud NoSQL database.'
-            }
+            Running in local Flask mode. API requests routed via Vite proxy to localhost:5000.
           </p>
           <div className="flex items-center gap-2 mt-2">
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
             <span className="text-xs text-slate-600 dark:text-slate-300 font-semibold uppercase">
-              {IS_FLASK_MODE ? 'Flask + SQLite (Local Dev)' : 'Firebase Firestore (Live)'}
+              Flask + SQLite (Local Dev)
             </span>
           </div>
         </div>
@@ -854,13 +977,13 @@ function UsersView({ students }) {
             {allUsers.map((user) => (
               <tr key={user.user_id}>
                 <td className="font-bold text-slate-800 dark:text-white flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-[#6D5EF4]/15 text-[#6D5EF4] flex items-center justify-center font-bold text-xs">
+                  <div className="h-8 w-8 rounded-full bg-[#2563eb]/15 text-[#2563eb] flex items-center justify-center font-bold text-xs">
                     {user.name[0]}
                   </div>
                   {user.name}
                 </td>
                 <td className="font-semibold text-slate-600 dark:text-slate-350">
-                  <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${user.role.includes('Librarian') ? 'bg-[#6D5EF4]/10 text-[#6D5EF4]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-350'}`}>
+                  <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${user.role.includes('Librarian') ? 'bg-[#2563eb]/10 text-[#2563eb]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-350'}`}>
                     {user.role}
                   </span>
                 </td>

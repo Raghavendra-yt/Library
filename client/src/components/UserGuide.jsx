@@ -22,7 +22,7 @@ export default function UserGuide({ isOpen, onClose }) {
       title: "Welcome to Sri Gowthami LMS",
       description: "This next-generation dashboard replaces manual operations with real-time tracking, rule-based fine calculation, and LLM-assisted academic support.",
       icon: BookOpen,
-      iconColor: "text-[#8b5cf6] bg-violet-50 dark:bg-[#8b5cf6]/10 border-violet-100 dark:border-[#8b5cf6]/20",
+      iconColor: "text-[#2563eb] bg-blue-50 dark:bg-[#2563eb]/10 border-blue-100 dark:border-[#2563eb]/20",
       details: [
         "Transitioned from static spreadsheets to central SQLite/Postgres database tables.",
         "Operational workflows simplified across key administrative modules.",
@@ -140,7 +140,7 @@ export default function UserGuide({ isOpen, onClose }) {
         </button>
 
         {/* Step Indicator Header */}
-        <div className="flex items-center gap-1.5 mb-5 text-[10px] font-bold text-[#8b5cf6] dark:text-[#a78bfa] uppercase tracking-widest font-heading">
+        <div className="flex items-center gap-1.5 mb-5 text-[10px] font-bold text-[#2563eb] dark:text-[#a78bfa] uppercase tracking-widest font-heading">
           <span>Sri Gowthami Interactive Tour</span>
           <span>•</span>
           <span>Step {currentStep + 1} of {steps.length}</span>
@@ -166,7 +166,7 @@ export default function UserGuide({ isOpen, onClose }) {
           <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-850 rounded-2xl p-4 space-y-2.5">
             {steps[currentStep].details.map((detail, idx) => (
               <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#8b5cf6] mt-2 flex-shrink-0" />
+                <span className="h-1.5 w-1.5 rounded-full bg-[#2563eb] mt-2 flex-shrink-0" />
                 <span>{detail}</span>
               </div>
             ))}
@@ -190,7 +190,7 @@ export default function UserGuide({ isOpen, onClose }) {
                 key={idx}
                 onClick={() => setCurrentStep(idx)}
                 className={`h-2 rounded-full cursor-pointer transition-all duration-300 ${
-                  currentStep === idx ? 'w-5 bg-[#8b5cf6]' : 'w-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300'
+                  currentStep === idx ? 'w-5 bg-[#2563eb]' : 'w-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300'
                 }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
@@ -210,7 +210,7 @@ export default function UserGuide({ isOpen, onClose }) {
             
             <button
               onClick={handleNext}
-              className="flex items-center gap-1.5 px-4 py-2 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white rounded-xl font-bold cursor-pointer transition shadow-md shadow-[#8b5cf6]/20 text-xs"
+              className="flex items-center gap-1.5 px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl font-bold cursor-pointer transition shadow-md shadow-[#2563eb]/20 text-xs"
             >
               <span>{currentStep === steps.length - 1 ? "Start Testing" : "Next Page"}</span>
               <ChevronRight className="w-3.5 h-3.5" />

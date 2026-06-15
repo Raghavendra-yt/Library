@@ -10,20 +10,20 @@
     
     /* Premium Modern University Light Theme */
     --background: #FFFFFF;
-    --page-bg: #F8FAFC; /* Soft gray section background */
-    --foreground: #0F172A; /* Slate 900 */
+    --page-bg: #f4f6f9; /* Soft mockup gray section background */
+    --foreground: #1e293b; /* Slate 800 */
     
-    --primary: #6D5EF4; /* Purple primary accent */
-    --primary-hover: #5A4BE8; /* Darker purple */
-    --secondary: #EDE9FE; /* Lavender secondary accent */
+    --primary: #2563eb; /* Blue primary accent */
+    --primary-hover: #1d4ed8; /* Darker blue */
+    --secondary: #eff6ff; /* Light blue secondary accent */
     
-    --sidebar-bg: #071A3D; /* Dark navy sidebar */
-    --sidebar-hover: #102856;
-    --sidebar-text: #FFFFFF;
+    --sidebar-bg: #ffffff; /* White sidebar */
+    --sidebar-hover: #f8fafc;
+    --sidebar-text: #64748b; /* Slate 500 */
     
     --card: #FFFFFF;
-    --card-border: #E5E7EB; /* Standard borders */
-    --sidebar-border: #102856; /* Border inside sidebar */
+    --card-border: #e2e8f0; /* Standard borders */
+    --sidebar-border: #edf2f7; /* Border inside sidebar */
     
     /* Status Colors */
     --success: #10B981;
@@ -31,9 +31,9 @@
     --danger: #EF4444;
     
     /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow: 0 4px 20px rgba(0,0,0,0.04);
-    --shadow-lg: 0 10px 30px rgba(109, 94, 244, 0.08), 0 4px 12px rgba(0, 0, 0, 0.03);
+    --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.02);
+    --shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+    --shadow-lg: 0 20px 25px -5px rgba(15, 23, 42, 0.06), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
   }
 
   .dark {
@@ -42,12 +42,12 @@
     --page-bg: #060B18;
     --foreground: #F8FAFC;
     
-    --primary: #8B7FF9;
-    --primary-hover: #6D5EF4;
-    --secondary: #211A4D;
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --secondary: #1e3a8a;
     
-    --sidebar-bg: #030D1E;
-    --sidebar-hover: #071A3D;
+    --sidebar-bg: #0B132B;
+    --sidebar-hover: #1e293b;
     --sidebar-text: #F8FAFC;
     
     --card: #111A35;

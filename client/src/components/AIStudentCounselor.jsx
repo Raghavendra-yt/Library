@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Sparkles, Send, Bot, User, RefreshCw, MessageSquare } from 'lucide-react';
 
-import { IS_FLASK_MODE, askDoubt } from '../lib/api';
+import { askDoubt } from '../lib/api';
 
 export default function AIStudentCounselor() {
   const shouldReduceMotion = useReducedMotion();
@@ -31,34 +31,8 @@ export default function AIStudentCounselor() {
     setLoading(true);
 
     try {
-      let answer = '';
-
-      if (IS_FLASK_MODE) {
-        // Flask mode: call real Flask /ai/doubt endpoint
-        const data = await askDoubt(userMessage.text);
-        answer = data.answer || 'No response from the server.';
-      } else {
-        // Firestore / offline mode: local intelligent responses
-        await new Promise(resolve => setTimeout(resolve, 900));
-
-        const q = userMessage.text.toLowerCase();
-
-        if (q.includes('recursion') || q.includes('రికర్శన్')) {
-          answer = 'Recursion is a technique where a function calls itself to solve smaller instances of the same problem.\n\nExample: factorial(n) = n × factorial(n-1)\n\nBase case: factorial(0) = 1\n\nKey rule: Every recursion must have a base case to avoid infinite loops!\n\nTelugu: రికర్శన్ అంటే ఒక ఫంక్షన్ తనను తాను పిలుచుకోవడం. ముఖ్యంగా base case ఉండాలి.';
-        } else if (q.includes('database') || q.includes('డేటాబేస్')) {
-          answer = 'A Database is an organized collection of structured data stored electronically.\n\nTypes:\n• Relational (SQL): MySQL, PostgreSQL\n• NoSQL: MongoDB, Firebase Firestore ← we use this!\n• In-memory: Redis\n\nFirestore (used in this app) is a cloud NoSQL database by Google — perfect for real-time applications!';
-        } else if (q.includes('algorithm') || q.includes('అల్గారిథమ్')) {
-          answer = 'An Algorithm is a step-by-step set of instructions to solve a problem.\n\nKey properties:\n• Input: Takes defined inputs\n• Output: Produces a result\n• Definiteness: Each step is clear\n• Finiteness: Terminates in finite steps\n\nExamples: Sorting (QuickSort, MergeSort), Searching (Binary Search), Graph traversal (BFS, DFS)';
-        } else if (q.includes('firebase') || q.includes('firestore')) {
-          answer = 'Firebase is a platform by Google for building web and mobile applications.\n\nKey services used in this Library System:\n🔥 Firestore — NoSQL cloud database (real-time data)\n📦 Collections: users, books, issuedBooks, returns\n\nFirestore stores data as Documents inside Collections. Each document has fields like name, title, status etc.';
-        } else if (q.includes('linked list') || q.includes('లింక్డ్ లిస్ట్')) {
-          answer = 'A Linked List is a linear data structure where elements are stored in nodes, each pointing to the next.\n\nTypes:\n• Singly Linked: A → B → C → NULL\n• Doubly Linked: NULL ← A ↔ B ↔ C → NULL\n• Circular: A → B → C → A\n\nAdvantage: Dynamic size, efficient insertions/deletions\nDisadvantage: No random access';
-        } else if (q.includes('hello') || q.includes('hi') || q.includes('namaste') || q.includes('నమస్తే')) {
-          answer = 'నమస్తే! 🙏\n\nI am the Gowthami Educational AI Assistant. I can help you with:\n• Computer Science concepts\n• Data Structures & Algorithms\n• Database theory\n• Programming questions\n• Library system guidance\n\nAsk me anything in English or Telugu! What would you like to learn today?';
-        } else {
-          answer = `Great question about "${userMessage.text}"!\n\nAs an educational assistant for Sri Gowthami Institutions, I can help with:\n• Programming concepts (Python, Java, C++)\n• Data Structures & Algorithms\n• Database Management (SQL, Firestore)\n• Mathematics & Engineering subjects\n• Library system usage\n\nPlease ask a specific academic question and I'll provide a detailed explanation! You can also ask in Telugu (తెలుగులో అడగవచ్చు).`;
-        }
-      }
+      const data = await askDoubt(userMessage.text);
+      const answer = data.answer || 'No response from the server.';
 
       setMessages(prev => [
         ...prev,
@@ -88,7 +62,7 @@ export default function AIStudentCounselor() {
     <div className="max-w-2xl mx-auto space-y-6 text-left flex flex-col h-[520px]">
       <div>
         <h2 className="text-xl font-bold text-slate-800 dark:text-white m-0 flex items-center gap-2 font-heading">
-          <Sparkles className="w-5 h-5 text-[#6D5EF4]" />
+          <Sparkles className="w-5 h-5 text-[#2563eb]" />
           AI Academic Counselor
         </h2>
         <p className="text-slate-400 text-xs mt-1">
@@ -114,7 +88,7 @@ export default function AIStudentCounselor() {
                 {/* Avatar */}
                 <div className={`p-2.5 rounded-xl border flex-shrink-0 ${
                   msg.sender === 'bot' 
-                    ? 'bg-[#6D5EF4]/10 border-transparent text-[#6D5EF4] dark:bg-[#6D5EF4]/10 dark:text-[#a78bfa]' 
+                    ? 'bg-[#2563eb]/10 border-transparent text-[#2563eb] dark:bg-[#2563eb]/10 dark:text-[#a78bfa]' 
                     : 'bg-blue-50 border-blue-100 text-blue-500 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-400'
                 }`}>
                   {msg.sender === 'bot' ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
@@ -124,7 +98,7 @@ export default function AIStudentCounselor() {
                 <div className={`p-3.5 rounded-2xl text-xs leading-relaxed whitespace-pre-line border ${
                   msg.sender === 'bot'
                     ? 'bg-slate-50 dark:bg-slate-900/60 border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-200'
-                    : 'bg-[#6D5EF4] border-[#6D5EF4] text-white shadow-md shadow-[#6D5EF4]/10'
+                    : 'bg-[#2563eb] border-[#2563eb] text-white shadow-md shadow-[#2563eb]/10'
                 }`}>
                   {msg.text}
                 </div>
@@ -137,11 +111,11 @@ export default function AIStudentCounselor() {
                 animate={{ opacity: 1 }}
                 className="flex items-center gap-3"
               >
-                <div className="p-2.5 rounded-xl bg-[#6D5EF4]/10 border-transparent text-[#6D5EF4]">
+                <div className="p-2.5 rounded-xl bg-[#2563eb]/10 border-transparent text-[#2563eb]">
                   <Bot className="w-4 h-4" />
                 </div>
                 <div className="p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 rounded-2xl flex items-center gap-2">
-                  <RefreshCw className="w-3.5 h-3.5 text-[#6D5EF4] animate-spin" />
+                  <RefreshCw className="w-3.5 h-3.5 text-[#2563eb] animate-spin" />
                   <span className="text-xs text-slate-400">Formulating explanation...</span>
                 </div>
               </motion.div>
@@ -158,7 +132,7 @@ export default function AIStudentCounselor() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask an academic query (e.g. What is recursion? / రికర్శన్ అంటే ఏమిటి?)..."
-              className="w-full pl-11 pr-4 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs focus:outline-none focus:border-[#6D5EF4]"
+              className="w-full pl-11 pr-4 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs focus:outline-none focus:border-[#2563eb]"
               disabled={loading}
               required
               aria-label="Ask counselor"
@@ -167,7 +141,7 @@ export default function AIStudentCounselor() {
           <button
             type="submit"
             disabled={loading}
-            className="w-12 h-12 bg-[#6D5EF4] hover:bg-[#5A4BE8] disabled:opacity-50 text-white rounded-[14px] font-bold cursor-pointer transition shadow-lg shadow-[#6D5EF4]/20 flex items-center justify-center active:scale-95"
+            className="w-12 h-12 bg-[#2563eb] hover:bg-[#1d4ed8] disabled:opacity-50 text-white rounded-[14px] font-bold cursor-pointer transition shadow-lg shadow-[#2563eb]/20 flex items-center justify-center active:scale-95"
           >
             <Send className="w-4 h-4" />
           </button>

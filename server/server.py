@@ -394,6 +394,8 @@ def ai_doubt():
         answer = "**English**: A database is an organized collection of structured information, or data, stored electronically in a computer system.\n\n**తెలుగు**: డేటాబేస్ అనేది కంప్యూటర్ సిస్టమ్‌లో ఎలక్ట్రానిక్‌గా నిల్వ చేయబడిన వ్యవస్థీకృత సమాచారం లేదా డేటా యొక్క సేకరణ."
     elif 'recursion' in q_lower or 'రికర్శన్' in q_lower:
         answer = "**English**: Recursion is a programming technique where a function calls itself directly or indirectly to solve a smaller instance of the same problem.\n\n**తెలుగు**: రికర్శన్ అనేది ఒక ప్రోగ్రామింగ్ పద్ధతి, ఇక్కడ ఒక ఫంక్షన్ అదే సమస్యను చిన్న భాగాలుగా పరిష్కరించడానికి తనను తాను పిలుచుకుంటుంది."
+    elif 'data analysis' in q_lower or 'డేటా విశ్లేషణ' in q_lower or 'analyze data' in q_lower:
+        answer = "**English**: To perform data analysis:\n1. **Load and Inspect**: Load the data and print its shape, column names, dtypes, and a small sample. Always look before you compute.\n2. **Clean Data**: Clean obvious issues — nulls, duplicates, type mismatches — and note what you changed.\n3. **Analyze**: Answer the question using code (prefer pandas/polars, matplotlib/plotly). Show intermediate results.\n4. **Product Analytics**: Query Amplitude directly and link the chart.\n5. **Output**: Save charts to `/mnt/session/outputs/` and summarize findings with caveats.\n\n**తెలుగు**: డేటా విశ్లేషణ చేయడానికి:\n1. **డేటాను లోడ్ చేయడం**: డేటా ఆకారం (shape), నిలువు వరుసల పేర్లు మరియు నమూనాను ముద్రించండి.\n2. **డేటాను శుభ్రపరచడం**: లోపాలు, నకిలీలను తొలగించండి.\n3. **విశ్లేషణ**: కోడ్ సహాయంతో ప్రశ్నకు సమాధానం ఇవ్వండి.\n4. **ప్రొడక్ట్ విశ్లేషణ**: ఆంప్లిట్యూడ్ (Amplitude) ఉపయోగించి చార్ట్‌లను లింక్ చేయండి.\n5. **নিవేదిక**: చార్ట్‌లను `/mnt/session/outputs/` లో సేవ్ చేయండి మరియు వివరించండి."
     else:
         answer = "**English**: Thank you for your question. As your AI study guide, I recommend looking up the standard textbooks on this topic in our book catalog for deep reading.\n\n**తెలుగు**: మీ ప్రశ్నకు ధన్యవాదాలు. మీ AI స్టడీ గైడ్‌గా, లోతైన అధ్యయనం కోసం మా పుస్తక కేటలాగ్‌లో ఈ విషయానికి సంబంధించిన ప్రామాణిక పాఠ్యపుస్తకాలను చూడాలని నేను సిఫార్సు చేస్తున్నాను."
         
@@ -409,6 +411,21 @@ def notify_remind():
     book_title = data.get('book_title')
     fine_amount = data.get('fine_amount')
     
+    if ledger_id and (not student_name or not student_contact):
+        record = db.query("""
+            SELECT u.name as student_name, u.contact as student_contact, b.title as book_title, fl.amount_due as fine_amount
+            FROM fine_ledger fl
+            JOIN transactions t ON fl.transaction_id = t.id
+            JOIN users u ON t.user_id = u.id
+            JOIN books b ON t.book_id = b.id
+            WHERE fl.id = $1
+        """, [ledger_id])
+        if len(record) > 0:
+            student_name = record[0]['student_name']
+            student_contact = record[0]['student_contact']
+            book_title = record[0]['book_title']
+            fine_amount = record[0]['fine_amount']
+
     if not ledger_id or not student_name or not student_contact:
         return jsonify({'error': 'Missing notification target properties'}), 400
         

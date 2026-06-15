@@ -14,8 +14,7 @@ import {
   Users
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
-import { getDashboardStats, getStudents, markReminderSent, returnBook, getAICounsel, IS_FLASK_MODE } from '../lib/api';
-import { seedFirestore } from '../lib/seedFirestore';
+import { getDashboardStats, getStudents, markReminderSent, returnBook, getAICounsel } from '../lib/api';
 
 export default function Dashboard() {
   const shouldReduceMotion = useReducedMotion();
@@ -81,47 +80,22 @@ export default function Dashboard() {
     fetchStats();
   }, []);
 
-  // Generate AI counseling plan locally (no backend needed)
+  // Generate AI counseling plan from backend
   useEffect(() => {
     if (!counselStudentId || students.length === 0) return;
 
     const generateCounsel = async () => {
       try {
         setCounselLoading(true);
-        const student = students.find(s => s.id === counselStudentId || s.user_id === counselStudentId);
-        if (!student) return;
-
-        // If Flask mode, use real Flask AI counsel endpoint
-        if (IS_FLASK_MODE) {
-          const counselData = await getAICounsel(counselStudentId);
-          if (counselData) {
-            setCounselPlan({
-              dropoutRisk: counselData.dropoutRisk || counselData.dropout_risk || 'Low Risk',
-              placementReadiness: counselData.placementReadiness || counselData.placement_readiness || 'Ready',
-              recommendedActions: counselData.recommendedActions || counselData.recommended_actions || [],
-              generatedPlan: counselData.generatedPlan || counselData.generated_plan || ''
-            });
-            return;
-          }
+        const counselData = await getAICounsel(counselStudentId);
+        if (counselData) {
+          setCounselPlan({
+            dropoutRisk: counselData.dropoutRisk || counselData.dropout_risk || 'Low Risk',
+            placementReadiness: counselData.placementReadiness || counselData.placement_readiness || 'Ready',
+            recommendedActions: counselData.recommendedActions || counselData.recommended_actions || [],
+            generatedPlan: counselData.generatedPlan || counselData.generated_plan || ''
+          });
         }
-
-        // Firestore mode: generate locally
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        const risks = ['Low Risk', 'Medium Risk', 'High Risk'];
-        const riskIndex = Math.abs((counselStudentId.charCodeAt(0) || 0)) % 3;
-
-        setCounselPlan({
-          dropoutRisk: risks[riskIndex],
-          placementReadiness: riskIndex === 0 ? '85% Ready' : riskIndex === 1 ? '62% Ready' : '40% Ready',
-          recommendedActions: [
-            'Encourage regular library visits for supplementary reading',
-            'Assign peer-study groups for collaborative learning',
-            'Schedule monthly academic performance reviews',
-            riskIndex > 0 ? 'Initiate counseling sessions with subject mentors' : 'Nominate for advanced elective courses'
-          ],
-          generatedPlan: `Academic Profile: ${student.name}\n\nBased on current library activity and academic engagement, this student shows ${risks[riskIndex].toLowerCase()} indicators. Regular monitoring of book checkout patterns and timely return behavior suggests a ${riskIndex === 0 ? 'positive' : 'developing'} academic trajectory.\n\nKey Focus Areas:\n• Subject-specific reading habit development\n• Overdue book management and fine awareness\n• Active participation in library-organized study sessions`
-        });
       } catch (err) {
         console.error(err);
       } finally {
@@ -177,19 +151,7 @@ export default function Dashboard() {
     }
   };
 
-  // Seed initial data if Firestore is empty
-  const handleSeedData = async () => {
-    setSeeding(true);
-    try {
-      await seedFirestore();
-      await fetchStats();
-    } catch (err) {
-      console.error('Seed error:', err);
-      alert(`Seeding failed: ${err.message}`);
-    } finally {
-      setSeeding(false);
-    }
-  };
+
 
   const getRiskBadgeColor = (risk) => {
     if (risk.toLowerCase().includes('high')) return 'bg-rose-50 text-rose-700 border border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20';
@@ -200,8 +162,8 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <RefreshCw className="w-8 h-8 text-[#8b5cf6] animate-spin" />
-        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Loading from Firebase Firestore...</p>
+        <RefreshCw className="w-8 h-8 text-[#2563eb] animate-spin" />
+        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Loading library assets from Flask server...</p>
       </div>
     );
   }
@@ -210,11 +172,11 @@ export default function Dashboard() {
     return (
       <div className="bg-white dark:bg-[#1e293b] border border-red-500/30 rounded-2xl p-6 text-center max-w-lg mx-auto mt-10 shadow-md">
         <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4 animate-bounce" />
-        <h3 className="text-xl font-bold mb-2 text-slate-800 dark:text-white font-heading">Firebase Connection Error</h3>
-        <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">{error}</p>
+        <h3 className="text-xl font-bold mb-2 text-slate-800 dark:text-white font-heading">Backend Connection Error</h3>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">Could not connect to the Python Flask backend server. Check your backend status and connection.</p>
         <button 
           onClick={fetchStats}
-          className="px-5 py-2.5 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white rounded-xl font-bold transition duration-200 cursor-pointer shadow-lg shadow-[#8b5cf6]/20 text-xs"
+          className="px-5 py-2.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl font-bold transition duration-200 cursor-pointer shadow-lg shadow-[#2563eb]/20 text-xs"
         >
           Retry Connection
         </button>
@@ -222,30 +184,9 @@ export default function Dashboard() {
     );
   }
 
-  // If Firestore has no data yet, show seed prompt
-  if (stats && stats.metrics.totalBooks === 0 && students.length === 0) {
-    return (
-      <div className="bg-white dark:bg-[#1e293b] border border-violet-500/30 rounded-2xl p-8 text-center max-w-lg mx-auto mt-10 shadow-md">
-        <div className="text-5xl mb-4">🔥</div>
-        <h3 className="text-xl font-bold mb-2 text-slate-800 dark:text-white font-heading">Firebase Connected!</h3>
-        <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
-          Your Firestore database is empty. Seed it with sample library data to get started.
-        </p>
-        <button
-          onClick={handleSeedData}
-          disabled={seeding}
-          className="px-6 py-3 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white rounded-xl font-bold transition duration-200 cursor-pointer shadow-lg shadow-[#8b5cf6]/20 text-sm flex items-center gap-2 mx-auto disabled:opacity-60"
-        >
-          {seeding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-          {seeding ? 'Seeding Firestore...' : 'Seed Sample Data'}
-        </button>
-      </div>
-    );
-  }
-
   const { metrics, recentTransactions, overdueList, categoryStats } = stats;
-  const chartColors = ['#6D5EF4', '#8B7FF9', '#A78BFA', '#C084FC', '#6366F1'];
-  const pieColors = ['#6D5EF4', '#10B981', '#F59E0B', '#3B82F6', '#EC4899'];
+  const chartColors = ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'];
+  const pieColors = ['#2563eb', '#10B981', '#F59E0B', '#3B82F6', '#EC4899'];
 
   const monthlyData = [
     { name: 'Jan', Issued: 140, Returned: 120 },
@@ -293,13 +234,10 @@ export default function Dashboard() {
       {/* 1. Welcome Section */}
       <motion.div 
         variants={cardVariants}
-        className="welcome-panel text-left"
+        className="text-left mb-6"
       >
-        <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white m-0 font-heading">
-          Good Morning, Librarian 👋
-        </h2>
-        <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">
-          Here's what's happening in Sri Gowthami Library today. <span className="text-violet-500 font-semibold">● Firestore Live</span>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+          <span className="text-emerald-500 font-semibold flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span> Firestore Live</span>
         </p>
       </motion.div>
 
@@ -308,17 +246,15 @@ export default function Dashboard() {
         {/* KPI 1: Total Books */}
         <motion.div 
           variants={cardVariants} 
-          className="premium-card flex items-center justify-between"
-          style={{ background: 'var(--card)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)', boxShadow: 'var(--shadow)' }}
+          className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between"
         >
           <div className="text-left">
-            <span className="text-[11px] text-[#64748B] dark:text-slate-400 uppercase font-bold tracking-wider">Total Books</span>
+            <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Total Books</span>
             <h3 className="text-2xl font-bold text-slate-800 dark:text-white mt-1.5 font-heading">
               {metrics.totalBooks ? metrics.totalBooks.toLocaleString() : '0'}
             </h3>
-            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1.5 block">Live from Firestore</span>
           </div>
-          <div className="h-12 w-12 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-xl shadow-sm">
+          <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shadow-sm">
             📚
           </div>
         </motion.div>
@@ -326,17 +262,15 @@ export default function Dashboard() {
         {/* KPI 2: Active Members */}
         <motion.div 
           variants={cardVariants} 
-          className="premium-card flex items-center justify-between"
-          style={{ background: 'var(--card)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)', boxShadow: 'var(--shadow)' }}
+          className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between"
         >
           <div className="text-left">
-            <span className="text-[11px] text-[#64748B] dark:text-slate-400 uppercase font-bold tracking-wider">Active Members</span>
+            <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Active Members</span>
             <h3 className="text-2xl font-bold text-slate-800 dark:text-white mt-1.5 font-heading">
               {students.length ? students.length.toLocaleString() : '0'}
             </h3>
-            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1.5 block">Registered Students</span>
           </div>
-          <div className="h-12 w-12 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-xl shadow-sm">
+          <div className="h-12 w-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shadow-sm">
             👥
           </div>
         </motion.div>
@@ -344,17 +278,15 @@ export default function Dashboard() {
         {/* KPI 3: Books Issued */}
         <motion.div 
           variants={cardVariants} 
-          className="premium-card flex items-center justify-between"
-          style={{ background: 'var(--card)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)', boxShadow: 'var(--shadow)' }}
+          className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between"
         >
           <div className="text-left">
-            <span className="text-[11px] text-[#64748B] dark:text-slate-400 uppercase font-bold tracking-wider">Books Issued</span>
+            <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Books Issued</span>
             <h3 className="text-2xl font-bold text-slate-800 dark:text-white mt-1.5 font-heading">
               {metrics.activeIssues ? metrics.activeIssues.toLocaleString() : '0'}
             </h3>
-            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1.5 block">Currently Active</span>
           </div>
-          <div className="h-12 w-12 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-xl shadow-sm">
+          <div className="h-12 w-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shadow-sm">
             📖
           </div>
         </motion.div>
@@ -362,17 +294,15 @@ export default function Dashboard() {
         {/* KPI 4: Overdue Books */}
         <motion.div 
           variants={cardVariants} 
-          className="premium-card flex items-center justify-between"
-          style={{ background: 'var(--card)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)', boxShadow: 'var(--shadow)' }}
+          className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between"
         >
           <div className="text-left">
-            <span className="text-[11px] text-[#64748B] dark:text-slate-400 uppercase font-bold tracking-wider">Overdue Books</span>
+            <span className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Overdue Books</span>
             <h3 className="text-2xl font-bold text-slate-800 dark:text-white mt-1.5 font-heading">
               {metrics.totalOverdue ? metrics.totalOverdue.toLocaleString() : '0'}
             </h3>
-            <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1.5 block">Require Attention</span>
           </div>
-          <div className="h-12 w-12 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-xl shadow-sm">
+          <div className="h-12 w-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl shadow-sm">
             ⚠️
           </div>
         </motion.div>
@@ -391,15 +321,14 @@ export default function Dashboard() {
           >
             <div className="flex items-center justify-between mb-4">
               <div className="text-left">
-                <h3 className="text-base font-bold text-slate-800 dark:text-white m-0 font-heading">Issued vs Returned Books</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Monthly analytics for the current academic year</p>
+                <h3 className="text-base font-bold text-slate-800 dark:text-white m-0 font-heading">Popular Titles</h3>
               </div>
               <div className="flex gap-4 text-xs font-semibold">
-                <span className="flex items-center gap-1.5 text-slate-650 dark:text-slate-350">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#6D5EF4] inline-block" /> Issued
+                <span className="flex items-center gap-1.5 text-slate-600">
+                  <span className="h-2.5 w-2.5 rounded-full bg-blue-600 inline-block" /> Issued
                 </span>
-                <span className="flex items-center gap-1.5 text-slate-650 dark:text-slate-350">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#10B981] inline-block" /> Returned
+                <span className="flex items-center gap-1.5 text-slate-600">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 inline-block" /> Returned
                 </span>
               </div>
             </div>
@@ -413,7 +342,7 @@ export default function Dashboard() {
                     contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--card-border)', borderRadius: '12px', color: 'var(--foreground)', fontSize: '12px' }}
                     labelStyle={{ fontWeight: 'bold' }}
                   />
-                  <Bar dataKey="Issued" fill="#6D5EF4" radius={[4, 4, 0, 0]} animationDuration={1000} />
+                  <Bar dataKey="Issued" fill="#2563eb" radius={[4, 4, 0, 0]} animationDuration={1000} />
                   <Bar dataKey="Returned" fill="#10B981" radius={[4, 4, 0, 0]} animationDuration={1000} />
                 </BarChart>
               </ResponsiveContainer>
@@ -423,27 +352,26 @@ export default function Dashboard() {
           {/* Recent Issued Books Table */}
           <motion.div 
             variants={cardVariants}
-            className="card-panel p-6 text-left"
+            className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm text-left"
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-bold text-slate-800 dark:text-white m-0 font-heading">Recent Issued Books</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Live log from Firestore — book checkouts and return statuses</p>
+                <h3 className="text-base font-bold text-slate-800 dark:text-white m-0 font-heading">Recent Transactions</h3>
               </div>
             </div>
 
-            <div className="table-container">
-              <table className="premium-table">
-                <thead>
+            <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-800/80">
+              <table className="w-full text-xs text-left text-slate-500 dark:text-slate-400 border-collapse">
+                <thead className="text-[10px] font-bold text-slate-400 dark:text-slate-500 bg-slate-50/50 dark:bg-slate-900/30 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                   <tr>
-                    <th>Book Title</th>
-                    <th>Student Name</th>
-                    <th>Issue Date</th>
-                    <th>Due Date</th>
-                    <th>Status</th>
+                    <th className="px-5 py-3.5 font-bold">Book Title</th>
+                    <th className="px-5 py-3.5 font-bold">Student Name</th>
+                    <th className="px-5 py-3.5 font-bold">Issue Date</th>
+                    <th className="px-5 py-3.5 font-bold">Due Date</th>
+                    <th className="px-5 py-3.5 font-bold">Status</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                   {recentTransactions && recentTransactions.length > 0 ? (
                     recentTransactions.map((tx) => {
                       let badgeClass = 'badge-info';
@@ -458,12 +386,12 @@ export default function Dashboard() {
                       }
                       
                       return (
-                        <tr key={tx.id}>
-                          <td className="font-bold text-slate-800 dark:text-white truncate max-w-[220px]">{tx.title}</td>
-                          <td className="font-semibold text-slate-650 dark:text-slate-350">{tx.student_name}</td>
-                          <td className="font-mono text-xs text-slate-500">{tx.issue_date}</td>
-                          <td className="font-mono text-xs text-slate-500">{tx.expected_return_date}</td>
-                          <td>
+                        <tr key={tx.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/10 transition-colors">
+                          <td className="px-5 py-3.5 font-bold text-slate-800 dark:text-white truncate max-w-[220px]">{tx.title}</td>
+                          <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-400">{tx.student_name}</td>
+                          <td className="px-5 py-3.5 font-mono text-xs text-slate-400 dark:text-slate-500">{tx.issue_date}</td>
+                          <td className="px-5 py-3.5 font-mono text-xs text-slate-400 dark:text-slate-500">{tx.expected_return_date}</td>
+                          <td className="px-5 py-3.5">
                             <span className={`badge ${badgeClass}`}>{statusLabel}</span>
                           </td>
                         </tr>
@@ -555,7 +483,7 @@ export default function Dashboard() {
               <>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2 text-left">
-                    <Sparkles className="w-5 h-5 text-[#6D5EF4]" />
+                    <Sparkles className="w-5 h-5 text-[#2563eb]" />
                     <h3 className="text-base font-bold text-slate-800 dark:text-white m-0 font-heading">AI Student Counsel Alerts</h3>
                   </div>
                   
@@ -573,7 +501,7 @@ export default function Dashboard() {
 
                 {counselLoading ? (
                   <div className="flex-1 flex flex-col items-center justify-center gap-2 py-8">
-                    <RefreshCw className="w-6 h-6 text-[#6D5EF4] animate-spin" />
+                    <RefreshCw className="w-6 h-6 text-[#2563eb] animate-spin" />
                     <p className="text-xs text-slate-400">Synthesizing records...</p>
                   </div>
                 ) : counselPlan ? (
@@ -596,7 +524,7 @@ export default function Dashboard() {
                       <ul className="space-y-1.5 pl-0">
                         {counselPlan.recommendedActions.map((action, i) => (
                           <li key={i} className="text-xs text-slate-600 dark:text-slate-350 flex items-start gap-2">
-                            <span className="text-[#6D5EF4] font-bold block mt-0.5">•</span>
+                            <span className="text-[#2563eb] font-bold block mt-0.5">•</span>
                             <span>{action}</span>
                           </li>
                         ))}
@@ -646,9 +574,9 @@ export default function Dashboard() {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 10 }}
-                      className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-[#F1F5F9] dark:border-slate-800/80 flex items-center gap-3 hover:border-violet-200 dark:hover:border-violet-900 transition-all duration-300 hover:shadow-sm text-left"
+                      className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-[#F1F5F9] dark:border-slate-800/80 flex items-center gap-3 hover:border-blue-200 dark:hover:border-blue-900/50 transition-all duration-300 hover:shadow-sm text-left"
                     >
-                      <div className="h-8 w-8 rounded-full bg-[#EDE9FE] dark:bg-[#2E1B4E] text-[#6D5EF4] flex items-center justify-center font-bold text-xs flex-shrink-0">
+                      <div className="h-8 w-8 rounded-full bg-blue-50 dark:bg-blue-950/40 text-[#2563eb] flex items-center justify-center font-bold text-xs flex-shrink-0">
                         {item.student_name[0]}
                       </div>
                       
@@ -661,7 +589,7 @@ export default function Dashboard() {
                         <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400">
                           <span className="text-red-500 font-semibold">{item.expected_return_date}</span>
                           <span>•</span>
-                          <span className="font-bold text-[#6D5EF4]">₹{item.fine_amount}</span>
+                          <span className="font-bold text-[#2563eb]">₹{item.fine_amount}</span>
                         </div>
                       </div>
                       
@@ -673,7 +601,7 @@ export default function Dashboard() {
                           className={`flex items-center justify-center p-2 rounded-lg text-xs font-bold cursor-pointer transition-all duration-200 ${
                             item.automated_reminder_sent === 1 
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400' 
-                              : 'bg-[#6D5EF4]/10 hover:bg-[#6D5EF4] hover:text-white text-[#6D5EF4] border border-transparent hover:shadow-sm active:scale-95'
+                              : 'bg-[#2563eb]/10 hover:bg-[#2563eb] hover:text-white text-[#2563eb] border border-transparent hover:shadow-sm active:scale-95'
                           }`}
                           title={item.automated_reminder_sent === 1 ? 'Reminder Logged' : 'Log Reminder'}
                         >

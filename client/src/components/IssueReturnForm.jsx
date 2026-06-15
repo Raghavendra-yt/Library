@@ -50,7 +50,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
       
     } catch (err) {
       console.error(err);
-      setStatus({ type: 'error', text: 'Failed to load data from Firestore. Check your connection.' });
+      setStatus({ type: 'error', text: 'Failed to load data from backend. Check your connection.' });
     } finally {
       setLoading(false);
     }
@@ -93,7 +93,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
     }
 
     try {
-      setStatus({ type: 'processing', text: 'Registering transaction in Firestore...' });
+      setStatus({ type: 'processing', text: 'Registering transaction in database...' });
       
       await issueBook({
         userId: issueForm.user_id,
@@ -101,7 +101,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
         durationDays: parseInt(issueForm.duration)
       });
 
-      setStatus({ type: 'success', text: 'Book issued successfully! Firestore has been updated.' });
+      setStatus({ type: 'success', text: 'Book issued successfully! Database has been updated.' });
       setIssueForm({ user_id: '', book_id: '', duration: '14' });
       fetchData();
     } catch (err) {
@@ -118,9 +118,9 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
     }
 
     try {
-      setStatus({ type: 'processing', text: 'Processing asset return in Firestore...' });
+      setStatus({ type: 'processing', text: 'Processing asset return in database...' });
       
-      // Find the Firestore document ID
+      // Find the transaction ID
       const tx = activeTransactions.find(t => 
         t.id === selectedTransactionId || 
         t.transaction_id === selectedTransactionId
@@ -131,7 +131,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
 
       setStatus({ 
         type: 'success', 
-        text: `Book returned successfully! ${result.fineAccrued > 0 ? `Overdue fee of ₹${result.fineAccrued} posted to Firestore.` : 'No overdue fees.'}`
+        text: `Book returned successfully! ${result.fineAccrued > 0 ? `Overdue fee of ₹${result.fineAccrued} posted to database.` : 'No overdue fees.'}`
       });
       setSelectedTransactionId('');
       setReturnPreview(null);
@@ -146,7 +146,13 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
     <div className="max-w-xl mx-auto space-y-6 text-left">
       <div>
         <h2 className="text-xl font-bold text-slate-800 dark:text-white m-0 font-heading">Circulation Manager</h2>
-        <p className="text-slate-400 text-xs mt-1">Issue and return library catalog items seamlessly. <span className="text-violet-500 font-semibold">● Firestore Live</span></p>
+        <p className="text-slate-400 text-xs mt-1 flex items-center gap-1.5">
+          Issue and return library catalog items seamlessly.
+          <span className="text-emerald-500 font-semibold flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+            LMS Server Live
+          </span>
+        </p>
       </div>
 
       {/* Tabs */}
@@ -155,7 +161,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
           onClick={() => { setActiveTab('issue'); setStatus(null); }}
           className={`flex-1 py-2.5 rounded-[10px] text-xs font-semibold cursor-pointer transition-all duration-200 ${
             activeTab === 'issue' 
-              ? 'bg-[#6D5EF4] text-white shadow-sm' 
+              ? 'bg-[#2563eb] text-white shadow-sm' 
               : 'text-slate-500 dark:text-slate-400 hover:text-slate-850 dark:hover:text-slate-200'
           }`}
         >
@@ -165,7 +171,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
           onClick={() => { setActiveTab('return'); setStatus(null); }}
           className={`flex-1 py-2.5 rounded-[10px] text-xs font-semibold cursor-pointer transition-all duration-200 ${
             activeTab === 'return' 
-              ? 'bg-[#6D5EF4] text-white shadow-sm' 
+              ? 'bg-[#2563eb] text-white shadow-sm' 
               : 'text-slate-500 dark:text-slate-400 hover:text-slate-850 dark:hover:text-slate-200'
           }`}
         >
@@ -185,7 +191,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
                 ? 'bg-emerald-50 border-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400' 
                 : status.type === 'error'
                   ? 'bg-red-50 border-red-100 text-red-700 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400'
-                  : 'bg-violet-50 border-violet-100 text-violet-700 dark:bg-[#8b5cf6]/10 dark:border-[#8b5cf6]/20 dark:text-[#a78bfa]'
+                  : 'bg-blue-50 border-blue-100 text-blue-700 dark:bg-[#2563eb]/10 dark:border-[#2563eb]/20 dark:text-blue-400'
             }`}
           >
             {status.type === 'success' ? (
@@ -193,7 +199,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
             ) : status.type === 'error' ? (
               <AlertTriangle className="w-5 h-5 flex-shrink-0 text-red-500" />
             ) : (
-              <RefreshCw className="w-5 h-5 flex-shrink-0 animate-spin text-[#6D5EF4]" />
+              <RefreshCw className="w-5 h-5 flex-shrink-0 animate-spin text-[#2563eb]" />
             )}
             <div className="flex-1">
               <p className="m-0 leading-relaxed">{status.text}</p>
@@ -219,7 +225,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
                 <select
                   value={issueForm.user_id}
                   onChange={(e) => setIssueForm(prev => ({ ...prev, user_id: e.target.value }))}
-                  className="w-full pl-11 pr-3 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs cursor-pointer focus:outline-none focus:border-[#6D5EF4]"
+                  className="w-full pl-11 pr-3 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs cursor-pointer focus:outline-none focus:border-[#2563eb]"
                   required
                 >
                   <option value="">-- Choose Student --</option>
@@ -242,7 +248,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
                 <select
                   value={issueForm.book_id}
                   onChange={(e) => setIssueForm(prev => ({ ...prev, book_id: e.target.value }))}
-                  className="w-full pl-11 pr-3 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs cursor-pointer focus:outline-none focus:border-[#6D5EF4]"
+                  className="w-full pl-11 pr-3 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs cursor-pointer focus:outline-none focus:border-[#2563eb]"
                   required
                 >
                   <option value="">-- Choose Book --</option>
@@ -269,7 +275,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
                 <select
                   value={issueForm.duration}
                   onChange={(e) => setIssueForm(prev => ({ ...prev, duration: e.target.value }))}
-                  className="w-full pl-11 pr-3 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs cursor-pointer focus:outline-none focus:border-[#6D5EF4]"
+                  className="w-full pl-11 pr-3 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs cursor-pointer focus:outline-none focus:border-[#2563eb]"
                   required
                 >
                   <option value="7">7 Days (Weekly Loan)</option>
@@ -282,7 +288,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-[#6D5EF4] hover:bg-[#5A4BE8] text-white rounded-[14px] font-bold cursor-pointer transition-all duration-300 shadow-lg shadow-[#6D5EF4]/20 text-xs flex items-center justify-center gap-2 active:scale-98 hover:-translate-y-0.5"
+              className="w-full h-12 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-[14px] font-bold cursor-pointer transition-all duration-300 shadow-lg shadow-[#2563eb]/20 text-xs flex items-center justify-center gap-2 active:scale-98 hover:-translate-y-0.5"
             >
               <ArrowRightLeft className="w-4 h-4" />
               Process Book Issue
@@ -299,7 +305,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
               <select
                 value={selectedTransactionId}
                 onChange={(e) => setSelectedTransactionId(e.target.value)}
-                className="w-full px-4 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs cursor-pointer focus:outline-none focus:border-[#6D5EF4]"
+                className="w-full px-4 h-12 rounded-[14px] border border-[#E5E7EB] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-xs cursor-pointer focus:outline-none focus:border-[#2563eb]"
                 required
               >
                 <option value="">-- Choose Transaction --</option>
@@ -358,7 +364,7 @@ export default function IssueReturnForm({ defaultTab = 'issue' }) {
             <button
               type="submit"
               disabled={loading || !selectedTransactionId}
-              className="w-full h-12 bg-[#6D5EF4] hover:bg-[#5A4BE8] text-white rounded-[14px] font-bold cursor-pointer transition-all duration-300 shadow-lg shadow-[#6D5EF4]/20 text-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-98 hover:-translate-y-0.5"
+              className="w-full h-12 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-[14px] font-bold cursor-pointer transition-all duration-300 shadow-lg shadow-[#2563eb]/20 text-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-98 hover:-translate-y-0.5"
             >
               <ArrowRightLeft className="w-4 h-4" />
               Process Book Return
