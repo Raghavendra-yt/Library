@@ -5,7 +5,11 @@
  * Firebase/Firestore support has been completely removed.
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = import.meta.env.VITE_API_URL || (
+  window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? '/api'
+    : 'http://localhost:5000/api'
+);
 
 // ─────────────────────────────────────────────────────────────────
 // Flask API helpers
