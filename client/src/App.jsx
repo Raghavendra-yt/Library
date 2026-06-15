@@ -38,7 +38,7 @@ import IssueReturnForm from './components/IssueReturnForm';
 import AIStudentCounselor from './components/AIStudentCounselor';
 import UserGuide from './components/UserGuide';
 
-import { getDashboardStats, getStudents } from './lib/firestoreService';
+import { getDashboardStats, getStudents, markReminderSent, IS_FLASK_MODE } from './lib/api';
 
 const fadeVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -622,23 +622,34 @@ function FinesView({ overdueList, onUpdate }) {
   const handleAlert = async (item) => {
     try {
       setLoadingId(item.transaction_id);
-      const res = await fetch(`${API_BASE}/notifications/remind`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ledger_id: item.ledger_id,
-          student_name: item.student_name,
-          student_contact: item.student_contact,
-          book_title: item.book_title,
-          fine_amount: item.fine_amount
-        })
-      });
-      if (res.ok) {
-        alert(`WhatsApp notification simulated and sent successfully to ${item.student_name}!`);
+
+      if (IS_FLASK_MODE) {
+        // Flask mode: call Flask notification endpoint
+        const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/notifications/remind`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ledger_id: item.ledger_id,
+            student_name: item.student_name,
+            student_contact: item.student_contact,
+            book_title: item.title || item.book_title,
+            fine_amount: item.fine_amount
+          })
+        });
+        if (res.ok) {
+          alert(`Reminder logged for ${item.student_name}!`);
+          onUpdate();
+        }
+      } else {
+        // Firestore mode: mark reminder sent directly
+        const { markReminderSent } = await import('./lib/api');
+        await markReminderSent(item.transaction_id, item.ledger_id);
+        alert(`Reminder logged for ${item.student_name} in Firestore!`);
         onUpdate();
       }
     } catch (err) {
       console.error(err);
+      alert('Failed to send reminder. Check console for details.');
     } finally {
       setLoadingId(null);
     }
@@ -789,10 +800,17 @@ function SettingsView({ isDarkMode, setIsDarkMode }) {
         {/* Database Mode */}
         <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3">
           <h4 className="text-sm font-bold text-slate-800 dark:text-white m-0">Backend Database Driver</h4>
-          <p className="text-xs text-slate-400">Current running context utilizes standard SQL drivers mapped to local SQLite.</p>
+          <p className="text-xs text-slate-400">
+            {IS_FLASK_MODE
+              ? 'Running in local Flask mode. API requests routed via Vite proxy to localhost:5000.'
+              : 'Running in Firebase Firestore mode. Data stored directly in cloud NoSQL database.'
+            }
+          </p>
           <div className="flex items-center gap-2 mt-2">
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
-            <span className="text-xs text-slate-600 dark:text-slate-300 font-semibold uppercase">SQLite Connection Online</span>
+            <span className="text-xs text-slate-600 dark:text-slate-300 font-semibold uppercase">
+              {IS_FLASK_MODE ? 'Flask + SQLite (Local Dev)' : 'Firebase Firestore (Live)'}
+            </span>
           </div>
         </div>
 

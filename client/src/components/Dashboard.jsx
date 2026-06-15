@@ -14,7 +14,7 @@ import {
   Users
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
-import { getDashboardStats, getStudents, markReminderSent, returnBook } from '../lib/firestoreService';
+import { getDashboardStats, getStudents, markReminderSent, returnBook, getAICounsel, IS_FLASK_MODE } from '../lib/api';
 import { seedFirestore } from '../lib/seedFirestore';
 
 export default function Dashboard() {
@@ -88,14 +88,28 @@ export default function Dashboard() {
     const generateCounsel = async () => {
       try {
         setCounselLoading(true);
-        const student = students.find(s => s.id === counselStudentId);
+        const student = students.find(s => s.id === counselStudentId || s.user_id === counselStudentId);
         if (!student) return;
 
-        // Generate a contextual counseling plan based on student data
-        await new Promise(resolve => setTimeout(resolve, 800)); // simulate processing
+        // If Flask mode, use real Flask AI counsel endpoint
+        if (IS_FLASK_MODE) {
+          const counselData = await getAICounsel(counselStudentId);
+          if (counselData) {
+            setCounselPlan({
+              dropoutRisk: counselData.dropoutRisk || counselData.dropout_risk || 'Low Risk',
+              placementReadiness: counselData.placementReadiness || counselData.placement_readiness || 'Ready',
+              recommendedActions: counselData.recommendedActions || counselData.recommended_actions || [],
+              generatedPlan: counselData.generatedPlan || counselData.generated_plan || ''
+            });
+            return;
+          }
+        }
+
+        // Firestore mode: generate locally
+        await new Promise(resolve => setTimeout(resolve, 800));
 
         const risks = ['Low Risk', 'Medium Risk', 'High Risk'];
-        const riskIndex = Math.abs(counselStudentId.charCodeAt(0)) % 3;
+        const riskIndex = Math.abs((counselStudentId.charCodeAt(0) || 0)) % 3;
 
         setCounselPlan({
           dropoutRisk: risks[riskIndex],

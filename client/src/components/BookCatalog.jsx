@@ -20,7 +20,8 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 
-import { getBooks, addBook, updateBook, deleteBook } from '../lib/firestoreService';
+import { getBooks, addBook, updateBook, deleteBook } from '../lib/api';
+
 
 export default function BookCatalog({ defaultCategory = '', addBookTrigger = 0 }) {
   const shouldReduceMotion = useReducedMotion();

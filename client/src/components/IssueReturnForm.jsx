@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { BookOpen, User, Calendar, CheckCircle2, AlertTriangle, ArrowRightLeft, RefreshCw, X } from 'lucide-react';
-import { getStudents, getBooks, getIssuedBooks, issueBook, returnBook, formatDate } from '../lib/firestoreService';
+import { getStudents, getBooks, getIssuedBooks, issueBook, returnBook, formatDate } from '../lib/api';
+
 
 export default function IssueReturnForm({ defaultTab = 'issue' }) {
   const shouldReduceMotion = useReducedMotion();

@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Sparkles, Send, Bot, User, RefreshCw, MessageSquare } from 'lucide-react';
 
-// AI Counselor uses local response generation (no backend required)
-// For production: connect to Gemini API or other LLM via a Firebase Cloud Function
-
+import { IS_FLASK_MODE, askDoubt } from '../lib/api';
 
 export default function AIStudentCounselor() {
   const shouldReduceMotion = useReducedMotion();
@@ -33,27 +31,33 @@ export default function AIStudentCounselor() {
     setLoading(true);
 
     try {
-      // Local AI response generation (no server required)
-      // Simulates educational AI responses based on question keywords
-      await new Promise(resolve => setTimeout(resolve, 900));
-
-      const q = userMessage.text.toLowerCase();
       let answer = '';
 
-      if (q.includes('recursion') || q.includes('రికర్శన్')) {
-        answer = 'Recursion is a technique where a function calls itself to solve smaller instances of the same problem.\n\nExample: factorial(n) = n × factorial(n-1)\n\nBase case: factorial(0) = 1\n\nKey rule: Every recursion must have a base case to avoid infinite loops!\n\nTelugu: రికర్శన్ అంటే ఒక ఫంక్షన్ తనను తాను పిలుచుకోవడం. ముఖ్యంగా base case ఉండాలి.';
-      } else if (q.includes('database') || q.includes('డేటాబేస్')) {
-        answer = 'A Database is an organized collection of structured data stored electronically.\n\nTypes:\n• Relational (SQL): MySQL, PostgreSQL\n• NoSQL: MongoDB, Firebase Firestore ← we use this!\n• In-memory: Redis\n\nFirestore (used in this app) is a cloud NoSQL database by Google — perfect for real-time applications!';
-      } else if (q.includes('algorithm') || q.includes('అల్గారిథమ్')) {
-        answer = 'An Algorithm is a step-by-step set of instructions to solve a problem.\n\nKey properties:\n• Input: Takes defined inputs\n• Output: Produces a result\n• Definiteness: Each step is clear\n• Finiteness: Terminates in finite steps\n\nExamples: Sorting (QuickSort, MergeSort), Searching (Binary Search), Graph traversal (BFS, DFS)';
-      } else if (q.includes('firebase') || q.includes('firestore')) {
-        answer = 'Firebase is a platform by Google for building web and mobile applications.\n\nKey services used in this Library System:\n🔥 Firestore — NoSQL cloud database (real-time data)\n📦 Collections: users, books, issuedBooks, returns\n\nFirestore stores data as Documents inside Collections. Each document has fields like name, title, status etc.';
-      } else if (q.includes('linked list') || q.includes('లింక్డ్ లిస్ట్')) {
-        answer = 'A Linked List is a linear data structure where elements are stored in nodes, each pointing to the next.\n\nTypes:\n• Singly Linked: A → B → C → NULL\n• Doubly Linked: NULL ← A ↔ B ↔ C → NULL\n• Circular: A → B → C → A\n\nAdvantage: Dynamic size, efficient insertions/deletions\nDisadvantage: No random access';
-      } else if (q.includes('hello') || q.includes('hi') || q.includes('namaste') || q.includes('నమస్తే')) {
-        answer = 'నమస్తే! 🙏\n\nI am the Gowthami Educational AI Assistant. I can help you with:\n• Computer Science concepts\n• Data Structures & Algorithms\n• Database theory\n• Programming questions\n• Library system guidance\n\nAsk me anything in English or Telugu! What would you like to learn today?';
+      if (IS_FLASK_MODE) {
+        // Flask mode: call real Flask /ai/doubt endpoint
+        const data = await askDoubt(userMessage.text);
+        answer = data.answer || 'No response from the server.';
       } else {
-        answer = `Great question about "${userMessage.text}"!\n\nAs an educational assistant for Sri Gowthami Institutions, I can help with:\n• Programming concepts (Python, Java, C++)\n• Data Structures & Algorithms\n• Database Management (SQL, Firestore)\n• Mathematics & Engineering subjects\n• Library system usage\n\nPlease ask a specific academic question and I'll provide a detailed explanation! You can also ask in Telugu (తెలుగులో అడగవచ్చు).`;
+        // Firestore / offline mode: local intelligent responses
+        await new Promise(resolve => setTimeout(resolve, 900));
+
+        const q = userMessage.text.toLowerCase();
+
+        if (q.includes('recursion') || q.includes('రికర్శన్')) {
+          answer = 'Recursion is a technique where a function calls itself to solve smaller instances of the same problem.\n\nExample: factorial(n) = n × factorial(n-1)\n\nBase case: factorial(0) = 1\n\nKey rule: Every recursion must have a base case to avoid infinite loops!\n\nTelugu: రికర్శన్ అంటే ఒక ఫంక్షన్ తనను తాను పిలుచుకోవడం. ముఖ్యంగా base case ఉండాలి.';
+        } else if (q.includes('database') || q.includes('డేటాబేస్')) {
+          answer = 'A Database is an organized collection of structured data stored electronically.\n\nTypes:\n• Relational (SQL): MySQL, PostgreSQL\n• NoSQL: MongoDB, Firebase Firestore ← we use this!\n• In-memory: Redis\n\nFirestore (used in this app) is a cloud NoSQL database by Google — perfect for real-time applications!';
+        } else if (q.includes('algorithm') || q.includes('అల్గారిథమ్')) {
+          answer = 'An Algorithm is a step-by-step set of instructions to solve a problem.\n\nKey properties:\n• Input: Takes defined inputs\n• Output: Produces a result\n• Definiteness: Each step is clear\n• Finiteness: Terminates in finite steps\n\nExamples: Sorting (QuickSort, MergeSort), Searching (Binary Search), Graph traversal (BFS, DFS)';
+        } else if (q.includes('firebase') || q.includes('firestore')) {
+          answer = 'Firebase is a platform by Google for building web and mobile applications.\n\nKey services used in this Library System:\n🔥 Firestore — NoSQL cloud database (real-time data)\n📦 Collections: users, books, issuedBooks, returns\n\nFirestore stores data as Documents inside Collections. Each document has fields like name, title, status etc.';
+        } else if (q.includes('linked list') || q.includes('లింక్డ్ లిస్ట్')) {
+          answer = 'A Linked List is a linear data structure where elements are stored in nodes, each pointing to the next.\n\nTypes:\n• Singly Linked: A → B → C → NULL\n• Doubly Linked: NULL ← A ↔ B ↔ C → NULL\n• Circular: A → B → C → A\n\nAdvantage: Dynamic size, efficient insertions/deletions\nDisadvantage: No random access';
+        } else if (q.includes('hello') || q.includes('hi') || q.includes('namaste') || q.includes('నమస్తే')) {
+          answer = 'నమస్తే! 🙏\n\nI am the Gowthami Educational AI Assistant. I can help you with:\n• Computer Science concepts\n• Data Structures & Algorithms\n• Database theory\n• Programming questions\n• Library system guidance\n\nAsk me anything in English or Telugu! What would you like to learn today?';
+        } else {
+          answer = `Great question about "${userMessage.text}"!\n\nAs an educational assistant for Sri Gowthami Institutions, I can help with:\n• Programming concepts (Python, Java, C++)\n• Data Structures & Algorithms\n• Database Management (SQL, Firestore)\n• Mathematics & Engineering subjects\n• Library system usage\n\nPlease ask a specific academic question and I'll provide a detailed explanation! You can also ask in Telugu (తెలుగులో అడగవచ్చు).`;
+        }
       }
 
       setMessages(prev => [
