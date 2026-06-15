@@ -371,11 +371,11 @@ export default function App() {
         <header className="sticky top-0 z-40 bg-white dark:bg-[#111a35] border-b border-[#E5E7EB] dark:border-slate-800 h-20 flex items-center justify-between px-6 lg:px-8 shadow-sm transition-colors duration-300">
           {/* Global Search bar */}
           <div className="relative w-64 md:w-96">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-455 w-4 h-4" />
+            <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-455 w-4 h-4" />
             <input
               type="text"
               placeholder="Search books, members, categories..."
-              className="w-full pl-12 pr-4 h-[46px] rounded-xl border border-[#E5E7EB] dark:border-slate-700 bg-white dark:bg-[#0b132b] text-xs focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] transition-all"
+              className="w-full pl-4 pr-12 h-[46px] rounded-xl border border-[#E5E7EB] dark:border-slate-700 bg-white dark:bg-[#0b132b] text-xs focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb] transition-all"
             />
           </div>
 
