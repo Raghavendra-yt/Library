@@ -24,7 +24,6 @@ import {
   ChevronRight,
   BookMarked,
   User,
-  ExternalLink,
   X,
   Clock,
   UserPlus,
@@ -607,18 +606,7 @@ export default function App() {
         <div className="space-y-4">
           <h3 className="text-sm font-bold text-white font-heading m-0">Reach Us</h3>
           
-          {/* Map embed */}
-          <div className="relative rounded-xl overflow-hidden border border-slate-800 shadow-md max-w-[203px] h-[180px]">
-            <img src="/Library/map.png" alt="Sri Gowthami Location Map" className="w-full h-full object-cover" />
-            <a 
-              href="https://maps.google.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="absolute top-2 left-2 bg-white/95 text-blue-600 hover:text-blue-800 text-[9px] font-bold px-2 py-0.5 rounded shadow flex items-center gap-1 cursor-pointer transition-colors"
-            >
-              Open in Maps <ExternalLink size={8} />
-            </a>
-          </div>
+
 
           {/* Address details */}
           <div className="text-[11px] text-slate-400 space-y-2 leading-relaxed">
